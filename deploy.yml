@@ -20,7 +20,7 @@ services:
         - "traefik.http.routers.backend-go.tls.certresolver=myresolver"
         - "traefik.http.services.backend-go.loadbalancer.server.port=80"
         - "traefik.http.routers.backend-go.tls=true"
-        - "traefik.docker.network=traefik-public"
+        - "traefik.docker.network=traefik-swarm"
         - "traefik.docker.lbswarm=true"
         - "traefik.http.routers.backend-go.service=backend-go"
       replicas: 2
@@ -102,5 +102,5 @@ networks:
 #    external: true
     attachable: true
   traefik:
-    name: traefik-public
+    name: traefik-swarm
     external: true
