@@ -1,0 +1,15 @@
+{
+  "target": {
+    "backend-go": {
+      "cache-from": [
+        "type=registry,ref=registry.gitlab.com/test-hack12345/backend-go:cache"
+      ],
+      "cache-to": [
+        "type=registry,ref=registry.gitlab.com/test-hack12345/backend-go:cache"
+      ],
+      "output": [
+        "type=docker"
+      ]
+    }
+  }
+}

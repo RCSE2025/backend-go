@@ -1,0 +1,10 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "description": "Backend API.",
+        "title": "Backend API",
+        "contact": {},
+        "version": "1.0"
+    },
+    "paths": {}
+}
