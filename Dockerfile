@@ -19,6 +19,8 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /main cmd/main.go
 
 FROM alpine AS runner
 
+RUN apk --no-cache add curl
+
 COPY --from=builder main /bin/main
 
 ENTRYPOINT ["/bin/main"]
