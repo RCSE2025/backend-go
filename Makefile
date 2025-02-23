@@ -1,6 +1,11 @@
+BIN=bin
+
+export GOBIN=$(CURDIR)/$(BIN)# for windows
+
+
 run:
 	make swag
-	go build -v -o main ./cmd/user-api/main.go
+	go build -v -o main ./cmd/main.go
 	.\main
 
 swag:

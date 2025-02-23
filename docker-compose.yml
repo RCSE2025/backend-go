@@ -2,7 +2,11 @@ version: '3.8'
 
 x-user_api-variables: &user_api-variables
   PRODUCTION: "true"
-  DB_URL: "postgres://postgres:postgres@backend-go-pgbouncer:5432/postgres?sslmode=disable"
+  DB_HOST: backend-go-pgbouncer
+  DB_PORT: 5432
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_NAME: postgres
 
 
 services:
