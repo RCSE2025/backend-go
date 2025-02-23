@@ -56,6 +56,7 @@ func Run() {
 
 	if err := model.RunMigrations(db); err != nil {
 		log.Error("error applying migrations", sl.Err(err))
+		return
 	}
 
 	fmt.Println("Migrations applied")

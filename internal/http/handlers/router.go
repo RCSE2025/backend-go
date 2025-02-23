@@ -78,6 +78,7 @@ type CreatUserRequest struct {
 // @Param request body CreatUserRequest true "request"
 // @Success     201 {object} model.User
 // @Router       /user [post]
+// @Security Bearer
 func CreateUser(w http.ResponseWriter, r *http.Request) {
 	render.JSON(w, r, response.OK())
 }

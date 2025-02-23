@@ -25,7 +25,7 @@ services:
         - "traefik.http.routers.backend-go.service=backend-go"
       replicas: 2
       update_config:
-        parallelism: 3
+        parallelism: 1
         order: start-first
         failure_action: rollback
         delay: 10s
