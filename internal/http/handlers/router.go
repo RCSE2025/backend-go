@@ -22,6 +22,10 @@ import (
 // @title           Backend API
 // @version         1.0
 // @description     API for site
+// @securityDefinitions.apikey Bearer
+// @in header
+// @name Authorization
+// @description Type "Bearer" followed by a space and JWT token.
 func NewRouter(r chi.Router, log *slog.Logger) {
 	r.Use(middleware.RealIP)
 	r.Use(mvp.NewPatternMiddleware("user-api"))
