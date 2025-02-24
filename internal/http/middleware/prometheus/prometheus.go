@@ -1,13 +1,10 @@
 package prometheus
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/prometheus/client_golang/prometheus"
-	"net/http"
-	"strconv"
-	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus"
 )
 
 var (
@@ -21,69 +18,60 @@ const (
 	latencyLowrName  = "http_request_duration_seconds"
 )
 
-// Middleware is a handler that exposes prometheus metrics for the number of requests,
-// the latency and the response size, partitioned by status code, method and HTTP path.
 type Middleware struct {
 	reqs         *prometheus.CounterVec
 	latencyLowr  *prometheus.HistogramVec
 	latencyHighr *prometheus.HistogramVec
 }
 
-// NewPatternMiddleware returns a new prometheus Middleware handler that groups requests by the chi routing pattern.
-// EX: /users/{firstName} instead of /users/bob
-func NewPatternMiddleware(name string, buckets ...float64) func(next http.Handler) http.Handler {
-	var m Middleware
-	m.reqs = prometheus.NewCounterVec(
-		prometheus.CounterOpts{
-			Name:        reqsName,
-			Help:        "How many HTTP requests processed, partitioned by status code, method and HTTP path (with patterns).",
-			ConstLabels: prometheus.Labels{"service": name},
-		},
-		//[]string{},
-		[]string{"handler", "method", "status"},
-	)
-	prometheus.MustRegister(m.reqs)
-
-	m.latencyHighr = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        latencyHighrName,
-		Help:        "Latency with many buckets but no API specific labels. \nMade for more accurate percentile calculations. ",
-		ConstLabels: prometheus.Labels{"service": name},
-		Buckets:     latencyHighrBuckets,
-	},
-		[]string{},
-	)
-	prometheus.MustRegister(m.latencyHighr)
-
-	m.latencyLowr = prometheus.NewHistogramVec(prometheus.HistogramOpts{
-		Name:        latencyLowrName,
-		Help:        "Latency with only few buckets by handler. \nMade to be only used if aggregation by handler is important. ",
-		ConstLabels: prometheus.Labels{"service": name},
-		Buckets:     latencyLowrBuckets,
-	},
-		[]string{"handler", "method", "status"},
-	)
-
-	prometheus.MustRegister(m.latencyLowr)
-
-	return m.patternHandler
-}
-
-func (c Middleware) patternHandler(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		start := time.Now()
-		ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
-		next.ServeHTTP(ww, r)
-
-		rctx := chi.RouteContext(r.Context())
-		routePattern := strings.Join(rctx.RoutePatterns, "")
-		routePattern = strings.Replace(routePattern, "/*/", "/", -1)
-
-		status := string(strconv.Itoa(ww.Status())[0]) + "xx"
-		defer func() {
-			c.reqs.WithLabelValues(routePattern, r.Method, status).Inc()
-			c.latencyHighr.WithLabelValues().Observe(time.Since(start).Seconds())
-			c.latencyLowr.WithLabelValues(routePattern, r.Method, status).Observe(time.Since(start).Seconds())
-		}()
+func NewGinPrometheusMiddleware(name string) gin.HandlerFunc {
+	m := Middleware{
+		reqs: prometheus.NewCounterVec(
+			prometheus.CounterOpts{
+				Name:        reqsName,
+				Help:        "How many HTTP requests processed, partitioned by status code, method, and path.",
+				ConstLabels: prometheus.Labels{"service": name},
+			},
+			[]string{"handler", "method", "status"},
+		),
+		latencyHighr: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:        latencyHighrName,
+				Help:        "Latency with many buckets but no API-specific labels.",
+				ConstLabels: prometheus.Labels{"service": name},
+				Buckets:     latencyHighrBuckets,
+			},
+			[]string{},
+		),
+		latencyLowr: prometheus.NewHistogramVec(
+			prometheus.HistogramOpts{
+				Name:        latencyLowrName,
+				Help:        "Latency with only a few buckets, grouped by handler.",
+				ConstLabels: prometheus.Labels{"service": name},
+				Buckets:     latencyLowrBuckets,
+			},
+			[]string{"handler", "method", "status"},
+		),
 	}
-	return http.HandlerFunc(fn)
+
+	prometheus.MustRegister(m.reqs, m.latencyHighr, m.latencyLowr)
+
+	return func(c *gin.Context) {
+		start := time.Now()
+		c.Next()
+
+		// Get the actual route pattern instead of the raw URL path
+		routePattern := c.FullPath()
+		if routePattern == "" {
+			routePattern = "unknown"
+		}
+
+		status := c.Writer.Status()
+		statusGroup := string([]byte{byte('0' + status/100), 'x', 'x'})
+
+		// Record metrics
+		m.reqs.WithLabelValues(routePattern, c.Request.Method, statusGroup).Inc()
+		m.latencyHighr.WithLabelValues().Observe(time.Since(start).Seconds())
+		m.latencyLowr.WithLabelValues(routePattern, c.Request.Method, statusGroup).Observe(time.Since(start).Seconds())
+	}
 }

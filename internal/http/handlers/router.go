@@ -1,22 +1,42 @@
 package handlers
 
 import (
-	docs "github.com/RCSE2025/backend-go/docs"
-	mvp "github.com/RCSE2025/backend-go/internal/http/middleware/prometheus"
-	"github.com/RCSE2025/backend-go/pkg/api/response"
-	"github.com/go-chi/chi/v5"
-	"github.com/prometheus/client_golang/prometheus/promhttp"
-
+	"github.com/RCSE2025/backend-go/docs"
 	mwLogger "github.com/RCSE2025/backend-go/internal/http/middleware/logger"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
-	"github.com/go-chi/render"
-	httpSwagger "github.com/swaggo/http-swagger"
-
+	mvp "github.com/RCSE2025/backend-go/internal/http/middleware/prometheus"
+	"github.com/gin-contrib/requestid"
+	"github.com/gin-gonic/gin"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 	"net/http"
 
 	"log/slog"
 )
+
+func CORSMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		c.Writer.Header().Set("Access-Control-Allow-Origin", "*")
+		c.Writer.Header().Set("Access-Control-Allow-Credentials", "true")
+		c.Writer.Header().Set("Access-Control-Allow-Headers", "Content-Type, Content-Length, Accept-Encoding, X-CSRF-Token, Authorization, accept, origin, Cache-Control, X-Requested-With")
+		c.Writer.Header().Set("Access-Control-Allow-Methods", "POST, OPTIONS, GET, PUT")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	}
+}
+
+func RealIPMiddleware() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		clientIP := c.ClientIP() // Extracts real IP
+		c.Set("real_ip", clientIP)
+		c.Next()
+	}
+}
 
 // NewRouter -.
 // @title           Backend API
@@ -26,40 +46,33 @@ import (
 // @in header
 // @name Authorization
 // @description Type "Bearer" followed by a space and JWT token.
-func NewRouter(r chi.Router, log *slog.Logger) {
-	r.Use(middleware.RealIP)
-	r.Use(mvp.NewPatternMiddleware("user-api"))
-	r.Use(cors.Handler(cors.Options{
-		// AllowedOrigins:   []string{"https://foo.com"}, // Use this to allow specific origin hosts
-		AllowedOrigins: []string{"https://*", "http://*"},
-		// AllowOriginFunc:  func(r *http.Request, origin string) bool { return true },
-		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Real-IP"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
-		MaxAge:           300, // Maximum value not ignored by any of major browsers
-	}))
-	r.Use(middleware.RequestID)
-	r.Use(mwLogger.New(log))
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.Heartbeat("/ping"))
+func NewRouter(r *gin.Engine, log *slog.Logger) {
 
-	r.Handle("/metrics", promhttp.Handler())
+	r.Use(requestid.New()) // Equivalent to middleware.RequestID
 
-	r.Get("/docs", func(w http.ResponseWriter, r *http.Request) {
-		// redirect
-		http.Redirect(w, r, "/docs/index.html", http.StatusMovedPermanently)
+	r.Use(mwLogger.New(log)) // Logging middleware
+
+	err := r.SetTrustedProxies(nil) //disabled Trusted Proxies
+	if err != nil {
+		log.Error(err.Error())
+		return
+	}
+
+	r.Use(CORSMiddleware())
+	r.Use(mvp.NewGinPrometheusMiddleware("user-api"))
+	r.Use(gin.Recovery())
+
+	r.GET("/docs/*any", func(context *gin.Context) {
+		docs.SwaggerInfo.Host = context.Request.Host
+		ginSwagger.CustomWrapHandler(&ginSwagger.Config{URL: "/docs/doc.json"}, swaggerFiles.Handler)(context)
 	})
 
-	r.Get("/docs/*", func(w http.ResponseWriter, r *http.Request) {
-		baseURL := r.Host
-		docs.SwaggerInfo.Host = baseURL
-		httpSwagger.Handler(
-			httpSwagger.URL("/docs/doc.json"), // The URL pointing to API definition
-		).ServeHTTP(w, r)
-	})
+	r.GET("/ping", func(c *gin.Context) { c.Status(http.StatusOK) })
 
-	r.Post("/user", CreateUser)
+	r.Use(RealIPMiddleware())
+	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
+
+	r.POST("/user", CreateUser)
 }
 
 type CreatUserRequest struct {
@@ -83,6 +96,8 @@ type CreatUserRequest struct {
 // @Success     201 {object} model.User
 // @Router       /user [post]
 // @Security Bearer
-func CreateUser(w http.ResponseWriter, r *http.Request) {
-	render.JSON(w, r, response.OK())
+func CreateUser(c *gin.Context) {
+	c.JSON(http.StatusOK, gin.H{
+		"message": "hallo, user",
+	})
 }

@@ -1,43 +1,46 @@
 package logger
 
 import (
-	"net/http"
 	"time"
 
-	"github.com/go-chi/chi/v5/middleware"
+	"github.com/gin-contrib/requestid"
+	"github.com/gin-gonic/gin"
 	"log/slog"
 )
 
-func New(log *slog.Logger) func(next http.Handler) http.Handler {
-	return func(next http.Handler) http.Handler {
-		log := log.With(
-			slog.String("component", "middleware/logger"),
-		)
+// New returns a Gin middleware function that logs HTTP requests
+func New(log *slog.Logger) gin.HandlerFunc {
+	log = log.With(
+		slog.String("component", "middleware/logger"),
+	)
 
-		log.Info("logger middleware enabled")
+	log.Info("Logger middleware enabled")
 
-		fn := func(w http.ResponseWriter, r *http.Request) {
-			entry := log.With(
-				slog.String("method", r.Method),
-				slog.String("path", r.URL.Path),
-				slog.String("remote_addr", r.RemoteAddr),
-				slog.String("user_agent", r.UserAgent()),
-				slog.String("request_id", middleware.GetReqID(r.Context())),
-			)
-			ww := middleware.NewWrapResponseWriter(w, r.ProtoMajor)
+	return func(c *gin.Context) {
+		start := time.Now()
 
-			t1 := time.Now()
-			defer func() {
-				entry.Info("request completed",
-					slog.Int("status", ww.Status()),
-					slog.Int("bytes", ww.BytesWritten()),
-					slog.String("duration", time.Since(t1).String()),
-				)
-			}()
-
-			next.ServeHTTP(ww, r)
+		// Extract request ID if available
+		reqID := requestid.Get(c)
+		if reqID == "" {
+			reqID = "unknown"
 		}
 
-		return http.HandlerFunc(fn)
+		entry := log.With(
+			slog.String("method", c.Request.Method),
+			slog.String("path", c.Request.URL.Path),
+			slog.String("remote_addr", c.ClientIP()),
+			slog.String("user_agent", c.Request.UserAgent()),
+			slog.String("request_id", reqID),
+		)
+
+		// Process the request
+		c.Next()
+
+		// Log after response is sent
+		entry.Info("request completed",
+			slog.Int("status", c.Writer.Status()),
+			slog.Int("bytes", c.Writer.Size()),
+			slog.String("duration", time.Since(start).String()),
+		)
 	}
 }

@@ -8,7 +8,7 @@ import (
 	"github.com/RCSE2025/backend-go/pkg/httpserver"
 	"github.com/RCSE2025/backend-go/pkg/logger"
 	"github.com/RCSE2025/backend-go/pkg/logger/sl"
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"log"
@@ -61,8 +61,11 @@ func Run() {
 
 	fmt.Println("Migrations applied")
 
-	r := chi.NewRouter()
-
+	//r := chi.NewRouter()
+	if cfg.Production {
+		gin.SetMode(gin.ReleaseMode)
+	}
+	r := gin.Default()
 	//userRepo := repo.New(postgresDB)
 
 	handlers.NewRouter(r, log)
