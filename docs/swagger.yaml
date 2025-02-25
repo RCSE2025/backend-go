@@ -1,24 +1,11 @@
 definitions:
-  handlers.CreatUserRequest:
-    properties:
-      date_of_birth:
-        type: string
-      email:
-        type: string
-      name:
-        type: string
-      password:
-        type: string
-      patronymic:
-        type: string
-      surname:
-        type: string
-    type: object
   model.User:
     properties:
       created_at:
         type: string
       date_of_birth:
+        example: "2006-01-02"
+        format: date
         type: string
       email:
         type: string
@@ -33,6 +20,23 @@ definitions:
       surname:
         type: string
       updated_at:
+        type: string
+    type: object
+  model.UserCreate:
+    properties:
+      date_of_birth:
+        example: "2006-01-02"
+        format: date
+        type: string
+      email:
+        type: string
+      name:
+        type: string
+      password:
+        type: string
+      patronymic:
+        type: string
+      surname:
         type: string
     type: object
   response.Response:
@@ -59,7 +63,7 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/handlers.CreatUserRequest'
+          $ref: '#/definitions/model.UserCreate'
       produces:
       - application/json
       responses:
@@ -78,6 +82,94 @@ paths:
       security:
       - Bearer: []
       summary: Create user
+      tags:
+      - user
+  /user/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete user by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Delete user by id
+      tags:
+      - user
+    get:
+      consumes:
+      - application/json
+      description: Get user by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Get user by id
+      tags:
+      - user
+  /user/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all users
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - Bearer: []
+      summary: Get all users
       tags:
       - user
 securityDefinitions:

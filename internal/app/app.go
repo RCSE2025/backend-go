@@ -5,6 +5,8 @@ import (
 	"github.com/RCSE2025/backend-go/internal/config"
 	"github.com/RCSE2025/backend-go/internal/http/handlers"
 	"github.com/RCSE2025/backend-go/internal/model"
+	"github.com/RCSE2025/backend-go/internal/repo"
+	"github.com/RCSE2025/backend-go/internal/service"
 	"github.com/RCSE2025/backend-go/pkg/httpserver"
 	"github.com/RCSE2025/backend-go/pkg/logger"
 	"github.com/RCSE2025/backend-go/pkg/logger/sl"
@@ -67,8 +69,10 @@ func Run() {
 	}
 	r := gin.Default()
 	//userRepo := repo.New(postgresDB)
+	userRepo := repo.NewUserRepo(db)
+	userService := service.NewUserService(userRepo)
 
-	handlers.NewRouter(r, log)
+	handlers.NewRouter(r, log, userService)
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 
