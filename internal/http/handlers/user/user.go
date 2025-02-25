@@ -203,7 +203,7 @@ type RefreshTokenRequest struct {
 // @Failure     500 {object} response.Response
 // @Failure     404 {object} response.Response
 // @Success     200 {object} model.Token
-// @Router       /user/refresh [post]
+// @Router      /user/refresh [post]
 // @Param       refresh_token formData string true "Refresh token"
 func (r *userRoutes) RefreshToken(c *gin.Context) {
 	var req RefreshTokenRequest

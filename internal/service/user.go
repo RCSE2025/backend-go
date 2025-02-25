@@ -19,15 +19,12 @@ func NewUserService(repo *repo.UserRepo) *UserService {
 
 func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 	if err := s.EmailExistsWithErr(user.Email); err != nil {
-		fmt.Println("1", err)
-
 		return model.User{}, err
 	}
 
 	passwordHash, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return model.User{}, err
-		fmt.Println("2", err)
 
 	}
 
@@ -41,12 +38,10 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			DateOfBirth:  user.DateOfBirth,
 		},
 	)
-	fmt.Println("3", err)
 
 	if err != nil {
 		return model.User{}, err
 	}
-	fmt.Println("4", err, userDB)
 
 	return userDB, nil
 }
