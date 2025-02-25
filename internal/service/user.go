@@ -44,7 +44,7 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 }
 
 func (s *UserService) GetUserByID(id int64) (model.User, error) {
-	if err := s.UserExistsWithErr(id); err != nil {
+	if err := s.UserNotExistsWithErr(id); err != nil {
 		return model.User{}, err
 	}
 
@@ -64,7 +64,7 @@ func (s *UserService) GetUserByEmail(email string) (model.User, error) {
 }
 
 func (s *UserService) DeleteUser(id int64) error {
-	if err := s.UserExistsWithErr(id); err != nil {
+	if err := s.UserNotExistsWithErr(id); err != nil {
 		return err
 	}
 	return s.repo.DeleteUser(id)
@@ -87,15 +87,15 @@ func (s *UserService) EmailExists(email string) (bool, error) {
 }
 
 func (s *UserService) EmailExistsWithErr(email string) error {
-	if exists, err := s.repo.EmailExists(email); !exists {
-		return ErrUserNotFound
+	if exists, err := s.repo.EmailExists(email); exists {
+		return ErrEmailExists
 	} else if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (s *UserService) UserExistsWithErr(id int64) error {
+func (s *UserService) UserNotExistsWithErr(id int64) error {
 
 	if exists, err := s.repo.UserExists(id); !exists {
 		return ErrUserNotFound
