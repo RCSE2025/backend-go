@@ -21,10 +21,10 @@ import (
 // @title           Backend API
 // @version         1.0
 // @description     API for site
-// @securityDefinitions.apikey Bearer
-// @in header
-// @name Authorization
-// @description Type "Bearer" followed by a space and JWT token.
+// @securityDefinitions.oauth2.password OAuth2PasswordBearer
+// @tokenUrl /user/token
+// @scope.read Grants read access
+// @scope.write Grants write access
 func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService) {
 
 	r.Use(requestid.New()) // Equivalent to middleware.RequestID

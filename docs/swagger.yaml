@@ -1,4 +1,14 @@
 definitions:
+  model.Token:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+      token_type:
+        example: bearer
+        type: string
+    type: object
   model.User:
     properties:
       created_at:
@@ -79,8 +89,6 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
-      security:
-      - Bearer: []
       summary: Create user
       tags:
       - user
@@ -111,7 +119,7 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       security:
-      - Bearer: []
+      - OAuth2PasswordBearer: []
       summary: Delete user by id
       tags:
       - user
@@ -141,7 +149,7 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       security:
-      - Bearer: []
+      - OAuth2PasswordBearer: []
       summary: Get user by id
       tags:
       - user
@@ -168,14 +176,79 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       security:
-      - Bearer: []
+      - OAuth2PasswordBearer: []
       summary: Get all users
       tags:
       - user
+  /user/refresh:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Refresh token
+      parameters:
+      - description: Refresh token
+        in: formData
+        name: refresh_token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Token'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Refresh token
+      tags:
+      - user
+  /user/token:
+    post:
+      consumes:
+      - application/x-www-form-urlencoded
+      description: Get token
+      parameters:
+      - description: Email
+        in: formData
+        name: username
+        required: true
+        type: string
+      - description: Password
+        in: formData
+        name: password
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Token'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get token
+      tags:
+      - user
 securityDefinitions:
-  Bearer:
-    description: Type "Bearer" followed by a space and JWT token.
-    in: header
-    name: Authorization
-    type: apiKey
+  OAuth2PasswordBearer:
+    flow: password
+    scopes:
+      read: Grants read access
+      write: Grants write access
+    tokenUrl: /user/token
+    type: oauth2
 swagger: "2.0"
