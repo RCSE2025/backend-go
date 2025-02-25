@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/repo"
 	"github.com/RCSE2025/backend-go/internal/utils"
@@ -18,12 +19,16 @@ func NewUserService(repo *repo.UserRepo) *UserService {
 
 func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 	if err := s.EmailExistsWithErr(user.Email); err != nil {
+		fmt.Println("1", err)
+
 		return model.User{}, err
 	}
 
 	passwordHash, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return model.User{}, err
+		fmt.Println("2", err)
+
 	}
 
 	userDB, err := s.repo.CreateUser(
@@ -36,11 +41,14 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			DateOfBirth:  user.DateOfBirth,
 		},
 	)
+	fmt.Println("3", err)
 
 	if err != nil {
 		return model.User{}, err
 	}
-	return userDB, err
+	fmt.Println("4", err, userDB)
+
+	return userDB, nil
 }
 
 func (s *UserService) GetUserByID(id int64) (model.User, error) {
@@ -88,11 +96,11 @@ func (s *UserService) EmailExists(email string) (bool, error) {
 
 func (s *UserService) EmailExistsWithErr(email string) error {
 	if exists, err := s.repo.EmailExists(email); exists {
+		fmt.Println("exists", exists, err)
 		return ErrEmailExists
-	} else if err != nil {
-		return err
+	} else {
+		return nil
 	}
-	return nil
 }
 
 func (s *UserService) UserNotExistsWithErr(id int64) error {

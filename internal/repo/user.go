@@ -1,6 +1,7 @@
 package repo
 
 import (
+	"fmt"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -40,7 +41,10 @@ func (r *UserRepo) GetAllUsers() ([]model.User, error) {
 
 func (r *UserRepo) EmailExists(email string) (bool, error) {
 	var user model.User
-	return user.ID != 0, r.db.Where("email = ?", email).First(&user).Error
+	ok := user.ID != 0
+	err := r.db.Where("email = ?", email).First(&user).Error
+	fmt.Println(ok, err, user)
+	return ok, err
 }
 
 func (r *UserRepo) UserExists(id int64) (bool, error) {
