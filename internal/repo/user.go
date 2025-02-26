@@ -41,8 +41,9 @@ func (r *UserRepo) GetAllUsers() ([]model.User, error) {
 
 func (r *UserRepo) EmailExists(email string) (bool, error) {
 	var user model.User
-	ok := user.ID != 0
 	err := r.db.Where("email = ?", email).First(&user).Error
+	ok := user.ID != 0
+
 	fmt.Println(ok, err, user)
 	return ok, err
 }

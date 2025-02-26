@@ -3,6 +3,7 @@ package user
 import (
 	"errors"
 	"fmt"
+	"github.com/RCSE2025/backend-go/internal/http/middleware/auth"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/service"
 	"github.com/RCSE2025/backend-go/pkg/api/response"
@@ -15,15 +16,15 @@ type userRoutes struct {
 	s *service.UserService
 }
 
-func NewUserRoutes(h *gin.RouterGroup, s *service.UserService) {
+func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService service.JWTService) {
 	g := h.Group("/user")
 
 	ur := userRoutes{s: s}
-
+	authMW := auth.Authenticate(jwtService)
 	g.POST("", ur.CreateUser)
-	g.GET("/:id", ur.GetUserByID)
-	g.DELETE("/:id", ur.DeleteUserByID)
-	g.GET("/all", ur.GetAllUsers)
+	g.GET("/:id", authMW, ur.GetUserByID)
+	g.DELETE("/:id", authMW, ur.DeleteUserByID)
+	g.GET("/all", authMW, ur.GetAllUsers)
 	g.POST("/token", ur.Token)
 	g.POST("/refresh", ur.RefreshToken)
 }
@@ -74,14 +75,14 @@ func (r *userRoutes) CreateUser(c *gin.Context) {
 func (r *userRoutes) GetUserByID(c *gin.Context) {
 	id := c.Param("id")
 	if id == "" {
-		res := response.Error("invalid id")
+		res := response.Error("invalid id param")
 		c.AbortWithStatusJSON(http.StatusBadRequest, res)
 		return
 	}
 
 	idInt, err := strconv.Atoi(id)
 	if err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error("cannot parse id"))
 		return
 	}
 
@@ -183,11 +184,19 @@ func (r *userRoutes) Token(c *gin.Context) {
 	}
 	fmt.Println(req.Username)
 	fmt.Println(req.Password)
-	c.JSON(http.StatusOK, model.Token{
-		RefreshToken: "RefreshToken",
-		AccessToken:  req.Password,
-		TokenType:    "Bearer",
-	})
+
+	token, err := r.s.GetToken(req.Username, req.Password)
+	if err != nil {
+		if errors.Is(err, service.ErrWrongEmailOrPassword) {
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, token)
+
 }
 
 type RefreshTokenRequest struct {
@@ -211,10 +220,11 @@ func (r *userRoutes) RefreshToken(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
-	fmt.Println(req.RefreshToken)
-	c.JSON(http.StatusOK, model.Token{
-		RefreshToken: req.RefreshToken,
-		AccessToken:  "sfsdfdf",
-		TokenType:    "Bearer",
-	})
+
+	token, err := r.s.RefreshToken(req.RefreshToken)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, token)
 }

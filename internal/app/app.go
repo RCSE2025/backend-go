@@ -13,26 +13,11 @@ import (
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
-	"log"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
 )
-
-func Run_() {
-	cfg := config.Get()
-	db, err := gorm.Open(postgres.Open(cfg.GetDSN()), &gorm.Config{})
-
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	if err := model.RunMigrations(db); err != nil {
-		log.Fatal(err)
-	}
-	fmt.Println("Миграции применились")
-}
 
 func Run() {
 	cfg := config.Get()
@@ -69,10 +54,12 @@ func Run() {
 	}
 	r := gin.Default()
 	//userRepo := repo.New(postgresDB)
-	userRepo := repo.NewUserRepo(db)
-	userService := service.NewUserService(userRepo)
+	jwtService := service.NewJWTService()
 
-	handlers.NewRouter(r, log, userService)
+	userRepo := repo.NewUserRepo(db)
+	userService := service.NewUserService(userRepo, jwtService)
+
+	handlers.NewRouter(r, log, userService, jwtService)
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 

@@ -25,7 +25,7 @@ import (
 // @tokenUrl /user/token
 // @scope.read Grants read access
 // @scope.write Grants write access
-func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService) {
+func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService) {
 
 	r.Use(requestid.New()) // Equivalent to middleware.RequestID
 
@@ -51,5 +51,6 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService) {
 	r.Use(middleware.RealIPMiddleware())
 	r.GET("/metrics", gin.WrapH(promhttp.Handler()))
 	h := r.Group("")
-	user.NewUserRoutes(h, us)
+
+	user.NewUserRoutes(h, us, jwtService)
 }
