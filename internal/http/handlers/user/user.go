@@ -36,6 +36,7 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 	g.POST("/token", ur.Token)
 	g.POST("/refresh", ur.RefreshToken)
 	g.POST("/email/verify", jwtMW, ur.VerifyEmail)
+	g.GET("/email", jwtMW, adminMW, ur.GetUserByEmail)
 }
 
 // CreateUser
@@ -337,6 +338,40 @@ func (r *userRoutes) Self(c *gin.Context) {
 	)
 	userID := c.GetInt64("user_id")
 	user, err := r.s.GetUserByID(userID)
+	if err != nil {
+		log.Error("cannot get user", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, user)
+}
+
+// GetUserByEmail
+// @Summary     Get user by email
+// @Description Get user by email
+// @Tags  	    user
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} model.User
+// @Router      /user/email [get]
+// @Param email query string true "email"
+// @Security OAuth2PasswordBearer
+func (r *userRoutes) GetUserByEmail(c *gin.Context) {
+	const op = "handlers.user.GetUserByEmail"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	email := c.Query("email")
+	if email == "" {
+		res := response.Error("invalid email param")
+		c.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	user, err := r.s.GetUserByEmail(email)
 	if err != nil {
 		log.Error("cannot get user", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
