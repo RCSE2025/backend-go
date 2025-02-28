@@ -3,11 +3,16 @@ package user
 import (
 	"errors"
 	"fmt"
+	"github.com/RCSE2025/backend-go/internal/http/middleware/admin"
 	"github.com/RCSE2025/backend-go/internal/http/middleware/auth"
+	"github.com/RCSE2025/backend-go/internal/http/middleware/logger"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/service"
 	"github.com/RCSE2025/backend-go/pkg/api/response"
+	"github.com/RCSE2025/backend-go/pkg/logger/sl"
+	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
+	"log/slog"
 	"net/http"
 	"strconv"
 )
@@ -20,13 +25,17 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 	g := h.Group("/user")
 
 	ur := userRoutes{s: s}
-	authMW := auth.Authenticate(jwtService)
+
+	jwtMW := auth.ValidateJWT(jwtService)
+	adminMW := admin.OnlyAdmin()
 	g.POST("", ur.CreateUser)
-	g.GET("/:id", authMW, ur.GetUserByID)
-	g.DELETE("/:id", authMW, ur.DeleteUserByID)
-	g.GET("/all", authMW, ur.GetAllUsers)
+	g.GET("/self", jwtMW, ur.Self)
+	g.GET("/:id", jwtMW, ur.GetUserByID)
+	g.DELETE("/:id", jwtMW, ur.DeleteUserByID)
+	g.GET("/all", jwtMW, adminMW, ur.GetAllUsers)
 	g.POST("/token", ur.Token)
 	g.POST("/refresh", ur.RefreshToken)
+	g.POST("/email/verify", jwtMW, ur.VerifyEmail)
 }
 
 // CreateUser
@@ -38,16 +47,25 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 // @Failure     500 {object} response.Response
 // @Failure     404 {object} response.Response
 // @Param request body model.UserCreate true "request"
-// @Success     201 {object} model.User
+// @Success     201 {object} model.User`
 // @Router      /user [post]
 func (r *userRoutes) CreateUser(c *gin.Context) {
+	const op = "handlers.user.CreateUser"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
 	var user model.UserCreate
 	if err := c.ShouldBind(&user); err != nil {
+		log.Error("cannot parse request", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 	userDB, err := r.s.CreateUser(user)
 	if err != nil {
+		log.Error("cannot create user", sl.Err(err))
+
 		if errors.Is(err, service.ErrEmailExists) {
 			c.AbortWithStatusJSON(http.StatusConflict, response.Error(err.Error()))
 			return
@@ -73,6 +91,12 @@ func (r *userRoutes) CreateUser(c *gin.Context) {
 // @Router      /user/{id} [get]
 // @Security OAuth2PasswordBearer
 func (r *userRoutes) GetUserByID(c *gin.Context) {
+	const op = "handlers.user.GetUserByID"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
 	id := c.Param("id")
 	if id == "" {
 		res := response.Error("invalid id param")
@@ -88,6 +112,7 @@ func (r *userRoutes) GetUserByID(c *gin.Context) {
 
 	user, err := r.s.GetUserByID(int64(idInt))
 	if err != nil {
+		log.Error("cannot get user", sl.Err(err))
 		if errors.Is(err, service.ErrUserNotFound) {
 			c.AbortWithStatusJSON(http.StatusNotFound, response.Error(err.Error()))
 			return
@@ -112,6 +137,12 @@ func (r *userRoutes) GetUserByID(c *gin.Context) {
 // @Router      /user/{id} [delete]
 // @Security OAuth2PasswordBearer
 func (r *userRoutes) DeleteUserByID(c *gin.Context) {
+	const op = "handlers.user.DeleteUserByID"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
 	id := c.Param("id")
 	if id == "" {
 		res := response.Error("invalid id")
@@ -127,6 +158,7 @@ func (r *userRoutes) DeleteUserByID(c *gin.Context) {
 
 	err = r.s.DeleteUser(int64(idInt))
 	if err != nil {
+		log.Error("cannot delete user", sl.Err(err))
 		if errors.Is(err, service.ErrUserNotFound) {
 			c.AbortWithStatusJSON(http.StatusNotFound, response.Error(err.Error()))
 			return
@@ -150,8 +182,15 @@ func (r *userRoutes) DeleteUserByID(c *gin.Context) {
 // @Router      /user/all [get]
 // @Security OAuth2PasswordBearer
 func (r *userRoutes) GetAllUsers(c *gin.Context) {
+	const op = "handlers.user.GetAllUsers"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
 	users, err := r.s.GetAllUsers()
 	if err != nil {
+		log.Error("cannot get users", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
 		return
 	}
@@ -177,6 +216,12 @@ type TokenRequest struct {
 // @Param       username formData string true "Email"
 // @Param       password formData string true "Password"
 func (r *userRoutes) Token(c *gin.Context) {
+	const op = "handlers.user.Token"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
 	var req TokenRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
@@ -187,6 +232,7 @@ func (r *userRoutes) Token(c *gin.Context) {
 
 	token, err := r.s.GetToken(req.Username, req.Password)
 	if err != nil {
+		log.Error("cannot get token", sl.Err(err))
 		if errors.Is(err, service.ErrWrongEmailOrPassword) {
 			c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 			return
@@ -215,6 +261,12 @@ type RefreshTokenRequest struct {
 // @Router      /user/refresh [post]
 // @Param       refresh_token formData string true "Refresh token"
 func (r *userRoutes) RefreshToken(c *gin.Context) {
+	const op = "handlers.user.RefreshToken"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
 	var req RefreshTokenRequest
 	if err := c.ShouldBind(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
@@ -223,8 +275,72 @@ func (r *userRoutes) RefreshToken(c *gin.Context) {
 
 	token, err := r.s.RefreshToken(req.RefreshToken)
 	if err != nil {
+		log.Error("cannot refresh token", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, token)
+}
+
+// VerifyEmail
+// @Summary     Verify email
+// @Description Verify email
+// @Tags  	    user
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} response.Response
+// @Router      /user/email/verify [post]
+// @Param       code query string true "Verification code"
+// @Security OAuth2PasswordBearer
+func (r *userRoutes) VerifyEmail(c *gin.Context) {
+	const op = "handlers.user.VerifyEmail"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	code := c.Query("code")
+	userID := c.GetInt64("user_id")
+	if code == "" {
+		res := response.Error("invalid code param")
+		c.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}
+	err := r.s.VerifyEmail(userID, code)
+	if err != nil {
+		log.Error("cannot verify email", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Success("email verified"))
+}
+
+// Self
+// @Summary     Get user
+// @Description Get user
+// @Tags  	    user
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} model.User
+// @Router      /user/self [get]
+// @Security OAuth2PasswordBearer
+func (r *userRoutes) Self(c *gin.Context) {
+	const op = "handlers.user.Self"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+	userID := c.GetInt64("user_id")
+	user, err := r.s.GetUserByID(userID)
+	if err != nil {
+		log.Error("cannot get user", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, user)
 }

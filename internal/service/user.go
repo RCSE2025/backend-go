@@ -1,22 +1,30 @@
 package service
 
 import (
+	"bytes"
+	"crypto/rand"
 	"errors"
 	"fmt"
+	"github.com/RCSE2025/backend-go/internal/email"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/repo"
 	"github.com/RCSE2025/backend-go/internal/utils"
+	"html/template"
+	"math/big"
+	"time"
 )
 
 type UserService struct {
 	repo       *repo.UserRepo
 	jwtService JWTService
+	mailer     *email.Mailer
 }
 
-func NewUserService(repo *repo.UserRepo, jwtService JWTService) *UserService {
+func NewUserService(repo *repo.UserRepo, jwtService JWTService, mailer *email.Mailer) *UserService {
 	return &UserService{
 		repo:       repo,
 		jwtService: jwtService,
+		mailer:     mailer,
 	}
 }
 
@@ -41,6 +49,22 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			DateOfBirth:  user.DateOfBirth,
 		},
 	)
+
+	code, err := s.CreateVerificationCode(userDB)
+	if err != nil {
+		return model.User{}, err
+	}
+	body, err := makeVerificationEmailTemplate(user.Name, code.Code)
+
+	if err != nil {
+		return model.User{}, err
+	}
+
+	err = s.mailer.SendMail(user.Email, "Подтверждение почты", body)
+
+	if err != nil {
+		return model.User{}, err
+	}
 
 	if err != nil {
 		return model.User{}, err
@@ -77,10 +101,6 @@ func (s *UserService) GetToken(email, password string) (model.Token, error) {
 
 	ok, _ := utils.CheckPassword(user.PasswordHash, []byte(password))
 
-	//if err != nil {
-	//	return model.Token{}, err
-	//}
-
 	if !ok {
 		return model.Token{}, ErrWrongEmailOrPassword
 	}
@@ -92,12 +112,18 @@ func (s *UserService) GetToken(email, password string) (model.Token, error) {
 	return token, nil
 }
 
+func (s UserService) GetUserRole(user model.User) string {
+	if user.IsAdmin {
+		return "admin"
+	}
+	return "user"
+}
 func (s *UserService) GenerateNewToken(user model.User) (model.Token, error) {
-	accessToken, err := s.jwtService.GenerateToken(user.ID, "user")
+	accessToken, err := s.jwtService.GenerateToken(user.ID, s.GetUserRole(user))
 	if err != nil {
 		return model.Token{}, err
 	}
-	refreshToken, err := s.jwtService.GenerateRefreshToken(user.ID, "user")
+	refreshToken, err := s.jwtService.GenerateRefreshToken(user.ID, s.GetUserRole(user))
 	if err != nil {
 		return model.Token{}, err
 	}
@@ -196,6 +222,80 @@ func (s *UserService) UserNotExistsWithErr(id int64) error {
 	if exists, err := s.repo.UserExists(id); !exists {
 		return ErrUserNotFound
 	} else if err != nil {
+		return err
+	}
+	return nil
+}
+
+const verificationCodeExpirationTime = 10 * time.Minute
+
+func (s *UserService) CreateVerificationCode(user model.User) (model.VerificationCode, error) {
+
+	code, err := generateCode()
+	if err != nil {
+		return model.VerificationCode{}, err
+	}
+	return s.repo.CreateVerificationCode(code, time.Now().Add(verificationCodeExpirationTime), user)
+}
+
+func generateCode() (string, error) {
+	n, err := rand.Int(rand.Reader, big.NewInt(900000))
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%06d", n.Int64()+100000), nil
+}
+
+const verificationEmailTemplate = `
+<html>
+    <body style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px;">
+        <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center;">
+            <h1 style="color: #4CAF50;">Подтверждение почты</h1>
+            <p style="font-size: 16px; line-height: 1.5;">Здравствуйте, {{.Name}}!</p>
+            <p style="font-size: 16px; line-height: 1.5;">Ваш код подтверждения:</p>
+            <p style="font-size: 24px; font-weight: bold; color: #4CAF50;">{{.Code}}</p>
+            <p style="font-size: 14px; color: #666;">Введите этот код в соответствующее поле, чтобы подтвердить свою электронную почту.</p>
+        </div>
+    </body>
+</html>`
+
+func makeVerificationEmailTemplate(name string, code string) (string, error) {
+	tmpl, err := template.New("verification_email").Parse(verificationEmailTemplate)
+	if err != nil {
+		return "", fmt.Errorf("Error parsing template: %v", err)
+	}
+
+	var body bytes.Buffer
+	err = tmpl.Execute(&body, struct {
+		Name string
+		Code string
+	}{Name: name, Code: code})
+
+	return body.String(), err
+}
+
+var ErrCodeExpired = errors.New("code expired")
+
+func (s *UserService) VerifyEmail(userID int64, code string) error {
+
+	if err := s.UserNotExistsWithErr(userID); err != nil {
+		return err
+	}
+
+	codeDB, err := s.repo.GetVerificationCode(userID, code)
+	if err != nil {
+		return err
+	}
+
+	if time.Now().After(codeDB.ExpiredAt) {
+		return ErrCodeExpired
+	}
+
+	if err := s.repo.DeleteVerificationCode(codeDB); err != nil {
+		return err
+	}
+
+	if err := s.repo.VerifyEmail(userID); err != nil {
 		return err
 	}
 	return nil

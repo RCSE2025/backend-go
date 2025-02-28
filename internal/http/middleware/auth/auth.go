@@ -10,7 +10,7 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
-func Authenticate(jwtService service.JWTService) gin.HandlerFunc {
+func ValidateJWT(jwtService service.JWTService) gin.HandlerFunc {
 	return func(ctx *gin.Context) {
 		authHeader := ctx.GetHeader("Authorization")
 		if authHeader == "" {
@@ -42,6 +42,9 @@ func Authenticate(jwtService service.JWTService) gin.HandlerFunc {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, response.Error(err.Error()))
 			return
 		}
+
+		userRole := jwtService.GetUserRole(authHeader)
+		ctx.Set("user_role", userRole)
 		ctx.Set("user_id", userId)
 
 		if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {

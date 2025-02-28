@@ -17,12 +17,21 @@ type DatabaseConfig struct {
 	DBName   string `env:"DB_NAME" env-required:"true"`
 }
 
+type EmailConfig struct {
+	AuthEmail    string `env:"SMTP_EMAIL" env-required:"true"`
+	AuthPassword string `env:"SMTP_PASSWORD" env-required:"true"`
+	Host         string `env:"SMTP_HOST" env-required:"true"`
+	Port         int    `env:"SMTP_PORT" env-required:"true"`
+	From         string `env:"MAIL_FROM" env-required:"true"`
+}
+
 type Config struct {
 	Port       string `env:"PORT"           env-default:"80"`
 	Host       string `env:"HOST"           env-default:"0.0.0.0"`
 	Version    string `env:"VERSION"        env-default:"1"`
 	Production bool   `env:"PRODUCTION"     env-default:"true"`
 	Database   DatabaseConfig
+	Email      EmailConfig
 }
 
 var (

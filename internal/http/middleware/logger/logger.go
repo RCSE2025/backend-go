@@ -8,6 +8,8 @@ import (
 	"log/slog"
 )
 
+const LoggerKey = "logger"
+
 // New returns a Gin middleware function that logs HTTP requests
 func New(log *slog.Logger) gin.HandlerFunc {
 	log = log.With(
@@ -33,6 +35,8 @@ func New(log *slog.Logger) gin.HandlerFunc {
 			slog.String("request_id", reqID),
 		)
 
+		c.Set(LoggerKey, entry)
+
 		// Process the request
 		c.Next()
 
@@ -43,4 +47,8 @@ func New(log *slog.Logger) gin.HandlerFunc {
 			slog.String("duration", time.Since(start).String()),
 		)
 	}
+}
+
+func FromContext(c *gin.Context) *slog.Logger {
+	return c.MustGet(LoggerKey).(*slog.Logger)
 }

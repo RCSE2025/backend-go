@@ -3,6 +3,7 @@ package app
 import (
 	"fmt"
 	"github.com/RCSE2025/backend-go/internal/config"
+	"github.com/RCSE2025/backend-go/internal/email"
 	"github.com/RCSE2025/backend-go/internal/http/handlers"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/repo"
@@ -55,9 +56,10 @@ func Run() {
 	r := gin.Default()
 	//userRepo := repo.New(postgresDB)
 	jwtService := service.NewJWTService()
+	mailer := email.NewMailer(cfg.Email)
 
 	userRepo := repo.NewUserRepo(db)
-	userService := service.NewUserService(userRepo, jwtService)
+	userService := service.NewUserService(userRepo, jwtService, mailer)
 
 	handlers.NewRouter(r, log, userService, jwtService)
 

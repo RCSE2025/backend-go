@@ -8,6 +8,12 @@ x-user_api-variables: &user_api-variables
   DB_PASSWORD: postgres
   DB_NAME: postgres
 
+  SMTP_EMAIL: test@localhost
+  SMTP_PASSWORD: test
+  SMTP_HOST: 82.146.63.6
+  SMTP_PORT: 1025
+  MAIL_FROM: test@localhost
+
 
 services:
   backend-go:

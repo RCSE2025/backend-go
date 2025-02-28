@@ -21,6 +21,8 @@ definitions:
         type: string
       id:
         type: integer
+      is_admin:
+        type: boolean
       is_email_verified:
         type: boolean
       name:
@@ -52,6 +54,8 @@ definitions:
   response.Response:
     properties:
       error:
+        type: string
+      message:
         type: string
       status:
         type: string
@@ -180,6 +184,37 @@ paths:
       summary: Get all users
       tags:
       - user
+  /user/email/verify:
+    post:
+      consumes:
+      - application/json
+      description: Verify email
+      parameters:
+      - description: Verification code
+        in: query
+        name: code
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Verify email
+      tags:
+      - user
   /user/refresh:
     post:
       consumes:
@@ -207,6 +242,31 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Refresh token
+      tags:
+      - user
+  /user/self:
+    get:
+      consumes:
+      - application/json
+      description: Get user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get user
       tags:
       - user
   /user/token:

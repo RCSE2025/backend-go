@@ -14,6 +14,7 @@ type User struct {
 	PasswordHash    string    `json:"-" gorm:"not null"` // "-" исключает поле из JSON
 	DateOfBirth     DateOnly  `json:"date_of_birth" gorm:"type:DATE"  example:"2006-01-02" swaggertype:"primitive,string" format:"date"`
 	IsEmailVerified bool      `json:"is_email_verified" gorm:"default:false"`
+	IsAdmin         bool      `json:"is_admin" gorm:"default:false"`
 	CreatedAt       time.Time `json:"created_at" gorm:"autoCreateTime"`
 	UpdatedAt       time.Time `json:"updated_at" gorm:"autoUpdateTime"`
 }

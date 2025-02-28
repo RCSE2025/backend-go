@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"gorm.io/gorm"
+	"time"
 )
 
 type UserRepo struct {
@@ -51,4 +52,28 @@ func (r *UserRepo) EmailExists(email string) (bool, error) {
 func (r *UserRepo) UserExists(id int64) (bool, error) {
 	var user model.User
 	return user.ID != 0, r.db.Where("id = ?", id).First(&user).Error
+}
+
+func (r *UserRepo) CreateVerificationCode(code string, expiredAt time.Time, user model.User) (model.VerificationCode, error) {
+	verifCode := model.VerificationCode{
+		Code:      code,
+		UserID:    user.ID,
+		ExpiredAt: expiredAt,
+	}
+	return verifCode, r.db.Create(&verifCode).Error
+}
+
+func (r *UserRepo) GetVerificationCode(userID int64, code string) (model.VerificationCode, error) {
+	var verifCode model.VerificationCode
+	return verifCode, r.db.Where("user_id = ? AND code = ?", userID, code).
+		Order("expired_at DESC").
+		First(&verifCode).Error
+}
+
+func (r *UserRepo) DeleteVerificationCode(code model.VerificationCode) error {
+	return r.db.Delete(&code).Error
+}
+
+func (r *UserRepo) VerifyEmail(userID int64) error {
+	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("is_email_verified", true).Error
 }
