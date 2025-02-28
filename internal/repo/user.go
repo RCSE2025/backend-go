@@ -77,3 +77,7 @@ func (r *UserRepo) DeleteVerificationCode(code model.VerificationCode) error {
 func (r *UserRepo) VerifyEmail(userID int64) error {
 	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("is_email_verified", true).Error
 }
+
+func (r *UserRepo) SetPassword(userID int64, passwordHash string) error {
+	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("password_hash", passwordHash).Error
+}

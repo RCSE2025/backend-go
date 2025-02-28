@@ -36,6 +36,8 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 	g.POST("/token", ur.Token)
 	g.POST("/refresh", ur.RefreshToken)
 	g.POST("/email/verify", jwtMW, ur.VerifyEmail)
+	g.POST("/password/reset/email", ur.SendResetPasswordEmail)
+	g.POST("/password/reset", ur.RefreshPassword)
 	g.GET("/email", jwtMW, adminMW, ur.GetUserByEmail)
 }
 
@@ -378,4 +380,77 @@ func (r *userRoutes) GetUserByEmail(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, user)
+}
+
+// SendResetPasswordEmail
+// @Summary     Send reset password email
+// @Description Send reset password email
+// @Tags  	    user
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} response.Response
+// @Param email query string true "email"
+// @Router      /user/password/reset/email [post]
+func (r *userRoutes) SendResetPasswordEmail(c *gin.Context) {
+	const op = "handlers.user.RefreshPassword"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	email := c.Query("email")
+	if email == "" {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error("invalid email param"))
+		return
+	}
+	err := r.s.SendResetPasswordEmail(email)
+	if err != nil {
+		log.Error("cannot send reset password email", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, response.Success("email sent"))
+}
+
+type ResetPasswordRequest struct {
+	Token    string `json:"token" form:"token" binding:"required"`
+	Password string `json:"password" form:"password" binding:"required"`
+}
+
+// RefreshPassword
+// @Summary     Refresh password
+// @Description Refresh password
+// @Tags  	    user
+// @Accept      application/x-www-form-urlencoded
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} response.Response
+// @Router      /user/password/reset [post]
+// @Param       token formData string true "Refresh token"
+// @Param       password formData string true "Password"
+func (r *userRoutes) RefreshPassword(c *gin.Context) {
+	const op = "handlers.user.RefreshPassword"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	var req ResetPasswordRequest
+	if err := c.ShouldBind(&req); err != nil {
+		log.Error("cannot bind request", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+
+	err := r.s.RefreshPassword(req.Token, req.Password)
+	if err != nil {
+		log.Error("cannot refresh password", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.Success("password refreshed"))
 }

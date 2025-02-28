@@ -15,9 +15,10 @@ import (
 )
 
 type UserService struct {
-	repo       *repo.UserRepo
-	jwtService JWTService
-	mailer     *email.Mailer
+	repo        *repo.UserRepo
+	jwtService  JWTService
+	mailer      *email.Mailer
+	frontendURL string
 }
 
 func NewUserService(repo *repo.UserRepo, jwtService JWTService, mailer *email.Mailer) *UserService {
@@ -36,7 +37,6 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 	passwordHash, err := utils.HashPassword(user.Password)
 	if err != nil {
 		return model.User{}, err
-
 	}
 
 	userDB, err := s.repo.CreateUser(
@@ -112,7 +112,7 @@ func (s *UserService) GetToken(email, password string) (model.Token, error) {
 	return token, nil
 }
 
-func (s UserService) GetUserRole(user model.User) string {
+func (s *UserService) GetUserRole(user model.User) string {
 	if user.IsAdmin {
 		return "admin"
 	}
@@ -296,6 +296,93 @@ func (s *UserService) VerifyEmail(userID int64, code string) error {
 	}
 
 	if err := s.repo.VerifyEmail(userID); err != nil {
+		return err
+	}
+	return nil
+}
+
+const resetPasswordEmailTemplate = `
+<html>
+    <body style="font-family: Arial, sans-serif; color: #333; background-color: #f9f9f9; padding: 20px;">
+        <div style="max-width: 600px; margin: auto; background-color: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); text-align: center;">
+            <h1 style="color: #4CAF50;">Восстановление пароля</h1>
+            <p style="font-size: 16px; line-height: 1.5;">Здравствуйте, {{.Name}}!</p>
+            <p style="font-size: 16px; line-height: 1.5;">Вы запросили восстановление пароля. Для установки нового пароля перейдите по ссылке ниже:</p>
+            <p>
+                <a href="{{.ResetLink}}" style="display: inline-block; padding: 12px 20px; font-size: 16px; color: #fff; background-color: #4CAF50; text-decoration: none; border-radius: 5px;">Сбросить пароль</a>
+            </p>
+            <p style="font-size: 14px; color: #666;">Если вы не запрашивали восстановление пароля, просто проигнорируйте это письмо.</p>
+        </div>
+    </body>
+</html>
+`
+
+func makeResetPasswordEmailTemplate(name string, resetLink string) (string, error) {
+	tmpl, err := template.New("reset_password_email").Parse(resetPasswordEmailTemplate)
+	if err != nil {
+		return "", fmt.Errorf("Error parsing template: %v", err)
+	}
+
+	var body bytes.Buffer
+	err = tmpl.Execute(&body, struct {
+		Name      string
+		ResetLink string
+	}{Name: name, ResetLink: resetLink})
+
+	return body.String(), err
+}
+
+func (s *UserService) SendResetPasswordEmail(email string) error {
+	if err := s.EmailNotExistsWithErr(email); err != nil {
+		return err
+	}
+
+	user, err := s.repo.GetUserByEmail(email)
+	if err != nil {
+		return err
+	}
+
+	token, err := s.jwtService.GenerateRefreshPasswordToken(user.ID)
+
+	if err != nil {
+		return err
+	}
+
+	resetLink := fmt.Sprintf("%s/reset-password?token=%s", s.frontendURL, token)
+
+	body, err := makeResetPasswordEmailTemplate(user.Name, resetLink)
+	if err != nil {
+		return err
+	}
+
+	if err := s.mailer.SendMail(user.Email, "Восстановление пароля", body); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *UserService) GenerateRefreshPasswordToken(user model.User) (string, error) {
+	token, err := s.jwtService.GenerateRefreshPasswordToken(user.ID)
+	if err != nil {
+		return "", err
+	}
+	return token, nil
+}
+
+func (s *UserService) RefreshPassword(token string, password string) error {
+	claims, err := s.jwtService.ValidateRefreshPasswordToken(token)
+	if err != nil {
+		return err
+	}
+
+	passwordHash, err := utils.HashPassword(password)
+	if err != nil {
+		return err
+	}
+
+	err = s.repo.SetPassword(claims.UserID, passwordHash)
+	if err != nil {
 		return err
 	}
 	return nil

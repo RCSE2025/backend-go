@@ -14,6 +14,8 @@ type JWTService interface {
 	ValidateToken(token string) (*jwt.Token, error)
 	GetUserIDByToken(token string) (int64, error)
 	GetUserRole(token string) string
+	GenerateRefreshPasswordToken(userId int64) (string, error)
+	ValidateRefreshPasswordToken(token string) (refreshPasswordClaim, error)
 }
 
 type jwtCustomClaim struct {
@@ -119,4 +121,39 @@ func (j *jwtService) GetUserRole(token string) string {
 		return ""
 	}
 	return role
+}
+
+const passwordRefreshTokenExpirationTime = 20 * time.Minute
+
+type refreshPasswordClaim struct {
+	UserID int64 `json:"user_id"`
+	jwt.RegisteredClaims
+}
+
+func (j *jwtService) GenerateRefreshPasswordToken(userId int64) (string, error) {
+	claims := refreshPasswordClaim{
+		userId,
+		jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(passwordRefreshTokenExpirationTime)),
+			Issuer:    j.issuer,
+			IssuedAt:  jwt.NewNumericDate(time.Now()),
+		},
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tx, err := token.SignedString([]byte(j.secretKey))
+	if err != nil {
+		return "", err
+	}
+	return tx, nil
+}
+
+func (j *jwtService) ValidateRefreshPasswordToken(token string) (refreshPasswordClaim, error) {
+	var claims refreshPasswordClaim
+	_, err := jwt.ParseWithClaims(token, &claims, j.parseToken)
+	if err != nil {
+		return refreshPasswordClaim{}, err
+	}
+
+	return claims, nil
 }
