@@ -26,20 +26,20 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 
 	ur := userRoutes{s: s}
 
-	jwtMW := auth.ValidateJWT(jwtService)
-	adminMW := admin.OnlyAdmin()
+	validateJWTmw := auth.ValidateJWT(jwtService)
+	onlyAdmin := admin.OnlyAdmin()
 	g.POST("", ur.CreateUser)
-	g.GET("/self", jwtMW, ur.Self)
-	g.DELETE("/self", jwtMW, ur.DeleteSelf)
-	g.GET("/:id", jwtMW, ur.GetUserByID)
-	g.DELETE("/:id", jwtMW, ur.DeleteUserByID)
-	g.GET("/all", jwtMW, adminMW, ur.GetAllUsers)
+	g.GET("/self", validateJWTmw, ur.Self)
+	g.DELETE("/self", validateJWTmw, ur.DeleteSelf)
+	g.GET("/:id", validateJWTmw, onlyAdmin, ur.GetUserByID)
+	g.DELETE("/:id", onlyAdmin, validateJWTmw, ur.DeleteUserByID)
+	g.GET("/all", validateJWTmw, onlyAdmin, ur.GetAllUsers)
 	g.POST("/token", ur.Token)
 	g.POST("/refresh", ur.RefreshToken)
-	g.POST("/email/verify", jwtMW, ur.VerifyEmail)
+	g.POST("/email/verify", validateJWTmw, ur.VerifyEmail)
 	g.POST("/password/reset/email", ur.SendResetPasswordEmail)
 	g.POST("/password/reset", ur.RefreshPassword)
-	g.GET("/email", jwtMW, adminMW, ur.GetUserByEmail)
+	g.GET("/email", validateJWTmw, onlyAdmin, ur.GetUserByEmail)
 }
 
 // CreateUser
