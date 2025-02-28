@@ -30,6 +30,7 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 	adminMW := admin.OnlyAdmin()
 	g.POST("", ur.CreateUser)
 	g.GET("/self", jwtMW, ur.Self)
+	g.DELETE("/self", jwtMW, ur.DeleteSelf)
 	g.GET("/:id", jwtMW, ur.GetUserByID)
 	g.DELETE("/:id", jwtMW, ur.DeleteUserByID)
 	g.GET("/all", jwtMW, adminMW, ur.GetAllUsers)
@@ -453,4 +454,37 @@ func (r *userRoutes) RefreshPassword(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response.Success("password refreshed"))
+}
+
+// DeleteSelf
+// @Summary     Delete self
+// @Description Delete self
+// @Tags  	    user
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} response.Response
+// @Router      /user/self [delete]
+// @Security OAuth2PasswordBearer
+func (r *userRoutes) DeleteSelf(c *gin.Context) {
+	const op = "handlers.user.DeleteSelf"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+	userID := c.GetInt64("user_id")
+	err := c.ShouldBind(&userID)
+	if err != nil {
+		log.Error("cannot bind request", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+	err = r.s.DeleteUser(userID)
+	if err != nil {
+		log.Error("cannot delete user", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.Success("user deleted"))
 }
