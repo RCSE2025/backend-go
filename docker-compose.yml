@@ -78,5 +78,4 @@ services:
 
 volumes:
   backend-go-postgres_data_volume:
-  backend-go-pgadmin-data_volume:
-
+  pgadmin-data_volume:
