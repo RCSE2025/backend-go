@@ -111,7 +111,7 @@ func (cr *cartRoutes) DeleteCartProduct(c *gin.Context) {
 // @Accept		json
 // @Produce		json
 // @Failure 	500 {object} response.Response
-// @Success		200 {object} model.CartItemsResponse
+// @Success		200 {object} []model.CartItemsResponse
 // @Router		/cart [get]
 // @Security OAuth2PasswordBearer
 func (cr *cartRoutes) GetCartProduct(c *gin.Context) {
@@ -146,8 +146,8 @@ type SetQuantityRequest struct {
 // @Failure 	500 {object} response.Response
 // @Success		200 {object} response.Response
 // @Router		/cart [put]
-// @Security OAuth2PasswordBearer
 // @Param request body SetQuantityRequest true "request"
+// @Security OAuth2PasswordBearer
 func (cr *cartRoutes) SetCartQuantity(c *gin.Context) {
 	const op = "handlers.cart.SetCartQuantity"
 	log := logger.FromContext(c).With(
