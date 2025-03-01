@@ -41,6 +41,10 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtServ
 	r.Use(mvp.NewGinPrometheusMiddleware("user-api"))
 	r.Use(gin.Recovery())
 
+	r.GET("/docs", func(context *gin.Context) {
+		context.Redirect(http.StatusPermanentRedirect, "/docs/index.html")
+	})
+
 	r.GET("/docs/*any", func(context *gin.Context) {
 		docs.SwaggerInfo.Host = context.Request.Host
 		ginSwagger.CustomWrapHandler(&ginSwagger.Config{URL: "/docs/doc.json"}, swaggerFiles.Handler)(context)

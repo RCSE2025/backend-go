@@ -1,4 +1,25 @@
 definitions:
+  model.Business:
+    properties:
+      address:
+        type: string
+      created_at:
+        type: string
+      full_name:
+        type: string
+      id:
+        type: integer
+      inn:
+        type: integer
+      ogrn:
+        type: integer
+      owner:
+        type: string
+      short_name:
+        type: string
+      updated_at:
+        type: string
+    type: object
   model.Token:
     properties:
       access_token:
@@ -21,13 +42,13 @@ definitions:
         type: string
       id:
         type: integer
-      is_admin:
-        type: boolean
       is_email_verified:
         type: boolean
       name:
         type: string
       patronymic:
+        type: string
+      role:
         type: string
       surname:
         type: string
@@ -48,6 +69,9 @@ definitions:
         type: string
       patronymic:
         type: string
+      role:
+        example: user
+        type: string
       surname:
         type: string
     type: object
@@ -66,6 +90,94 @@ info:
   title: Backend API
   version: "1.0"
 paths:
+  /business:
+    post:
+      consumes:
+      - application/json
+      description: Create new business
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.Business'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.Business'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Create business
+      tags:
+      - business
+  /business/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Get business by id
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get business by id
+      tags:
+      - business
+  /business/get_business_info/{inn}:
+    post:
+      consumes:
+      - application/json
+      description: Get business info by INN
+      parameters:
+      - description: inn
+        in: path
+        name: inn
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/model.User'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get business info by INN from api
+      tags:
+      - business
   /user:
     post:
       consumes:

@@ -47,6 +47,7 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			Email:        user.Email,
 			PasswordHash: passwordHash,
 			DateOfBirth:  user.DateOfBirth,
+			Role:         user.Role,
 		},
 	)
 
@@ -113,10 +114,7 @@ func (s *UserService) GetToken(email, password string) (model.Token, error) {
 }
 
 func (s *UserService) GetUserRole(user model.User) string {
-	if user.IsAdmin {
-		return "admin"
-	}
-	return "user"
+	return string(user.Role)
 }
 func (s *UserService) GenerateNewToken(user model.User) (model.Token, error) {
 	accessToken, err := s.jwtService.GenerateToken(user.ID, s.GetUserRole(user))
