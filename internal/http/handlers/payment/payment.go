@@ -23,7 +23,7 @@ func NewProductRoutes(h *gin.RouterGroup, yookassa *service.YookassaPayment) {
 
 }
 
-type notification any
+type notification map[string]interface{}
 
 // @Summary Payment notification
 // @Tags Payment
