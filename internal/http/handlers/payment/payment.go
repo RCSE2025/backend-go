@@ -20,10 +20,16 @@ func NewProductRoutes(h *gin.RouterGroup, yookassa *service.YookassaPayment) {
 	}
 
 	g.POST("/notifications", pr.notification)
-
 }
 
-type notification map[string]interface{}
+type orderInfo struct {
+	OrderId int64 `json:"order_id"`
+}
+
+type notification struct {
+	Event    string    `json:"event"`
+	Metadata orderInfo `json:"metadata"`
+}
 
 // @Summary Payment notification
 // @Tags Payment
@@ -38,7 +44,5 @@ func (pr *paymentRoutes) notification(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
-
 	fmt.Println(req)
-
 }
