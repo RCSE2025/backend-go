@@ -23,7 +23,7 @@ func NewProductRoutes(h *gin.RouterGroup, yookassa *service.YookassaPayment) {
 }
 
 type orderInfo struct {
-	OrderId int64 `json:"order_id"`
+	OrderId string `json:"order_id"`
 }
 
 type notification struct {
