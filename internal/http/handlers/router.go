@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/RCSE2025/backend-go/docs"
+	"github.com/RCSE2025/backend-go/internal/http/handlers/product"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/user"
 	"github.com/RCSE2025/backend-go/internal/http/middleware"
 	mwLogger "github.com/RCSE2025/backend-go/internal/http/middleware/logger"
@@ -57,4 +58,5 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtServ
 	h := r.Group("")
 
 	user.NewUserRoutes(h, us, jwtService)
+	product.NewProductRoutes(h, jwtService)
 }

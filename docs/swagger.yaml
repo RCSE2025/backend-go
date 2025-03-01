@@ -175,6 +175,38 @@ paths:
       summary: Get business info by INN from api
       tags:
       - business
+  /product/images/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload multiple images
+      parameters:
+      - collectionFormat: csv
+        description: Upload multiple images
+        in: formData
+        items:
+          type: file
+        name: upload
+        required: true
+        type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful upload
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Upload multiple images
+      tags:
+      - product
   /user:
     post:
       consumes:

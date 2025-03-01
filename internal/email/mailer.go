@@ -14,7 +14,7 @@ func NewMailer(emailConfig config.EmailConfig) *Mailer {
 	dialer := gomail.NewDialer(
 		emailConfig.Host,
 		emailConfig.Port,
-		"", //emailConfig.AuthEmail, // TODO: исправить на самом хаке
+		emailConfig.AuthEmail, //emailConfig.AuthEmail, // TODO: исправить на самом хаке
 		emailConfig.AuthPassword,
 	)
 
