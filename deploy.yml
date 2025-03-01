@@ -15,7 +15,7 @@ services:
         - "logging_jobname=containerlogs"
         # traefik
         - "traefik.enable=true"
-        - "traefik.http.routers.backend-go.rule=Host(`backend-go.hack.vingp.dev`)"
+        - "traefik.http.routers.backend-go.rule=Host(`backend-go.hack.vingp.dev`, `api.ryazan-market.ru`)"
         - "traefik.http.routers.backend-go.entrypoints=https,http"
         - "traefik.http.routers.backend-go.tls.certresolver=myresolver"
         - "traefik.http.services.backend-go.loadbalancer.server.port=80"
