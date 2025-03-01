@@ -23,7 +23,7 @@ func (or *OrderRepo) CreateOrderItem(orderItem model.OrderItem) (model.OrderItem
 	return orderItem, or.db.Create(&orderItem).Error
 }
 
-func (or *OrderRepo) SetOrderStatus(userID, orderID int64, status string) error {
+func (or *OrderRepo) SetOrderStatus(userID, orderID int64, status model.OrderStatusType) error {
 	return or.db.Model(&model.Order{}).Where("user_id = ? AND id = ?", userID, orderID).Update("status", status).Error
 }
 

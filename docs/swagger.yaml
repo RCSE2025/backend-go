@@ -93,6 +93,8 @@ definitions:
     type: object
   model.OrderItemResponse:
     properties:
+      address:
+        type: string
       created_at:
         type: string
       id:
@@ -101,6 +103,8 @@ definitions:
         items:
           $ref: '#/definitions/model.ExtendedOrderItem'
         type: array
+      payment_confirm:
+        type: boolean
       status:
         type: string
       updated_at:

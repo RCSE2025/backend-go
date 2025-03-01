@@ -3,6 +3,7 @@ package order
 import (
 	"github.com/RCSE2025/backend-go/internal/http/middleware/auth"
 	"github.com/RCSE2025/backend-go/internal/http/middleware/logger"
+	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/service"
 	"github.com/RCSE2025/backend-go/pkg/api/response"
 	"github.com/RCSE2025/backend-go/pkg/logger/sl"
@@ -116,8 +117,8 @@ func (ordR *orderRoutes) GetListOrders(c *gin.Context) {
 }
 
 type SetOrderStatusRequest struct {
-	OrderID int64  `json:"order_id"`
-	Status  string `json:"status"`
+	OrderID int64                 `json:"order_id"`
+	Status  model.OrderStatusType `json:"status"`
 }
 
 // SetOrderStatus
