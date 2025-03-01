@@ -60,7 +60,7 @@ func Run() {
 	mailer := email.NewMailer(cfg.Email)
 
 	userRepo := repo.NewUserRepo(db)
-	userService := service.NewUserService(userRepo, jwtService, mailer)
+	userService := service.NewUserService(userRepo, jwtService, mailer, cfg.FrontendURL)
 
 	// Создаем репозиторий и сервис для работы с продуктами
 	productRepo := repo.NewProductRepo(db)
