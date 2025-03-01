@@ -798,10 +798,6 @@
                 "patronymic": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "string",
-                    "example": "user"
-                },
                 "surname": {
                     "type": "string"
                 }

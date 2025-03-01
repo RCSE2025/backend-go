@@ -69,9 +69,6 @@ definitions:
         type: string
       patronymic:
         type: string
-      role:
-        example: user
-        type: string
       surname:
         type: string
     type: object

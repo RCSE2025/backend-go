@@ -47,7 +47,7 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			Email:        user.Email,
 			PasswordHash: passwordHash,
 			DateOfBirth:  user.DateOfBirth,
-			Role:         user.Role,
+			Role:         model.UserRole,
 		},
 	)
 

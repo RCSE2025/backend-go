@@ -806,10 +806,6 @@ const docTemplate = `{
                 "patronymic": {
                     "type": "string"
                 },
-                "role": {
-                    "type": "string",
-                    "example": "user"
-                },
                 "surname": {
                     "type": "string"
                 }

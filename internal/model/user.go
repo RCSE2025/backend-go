@@ -33,11 +33,10 @@ func (User) TableName() string {
 }
 
 type UserCreate struct {
-	Name        string       `json:"name" `
-	Patronymic  string       `json:"patronymic" `
-	Surname     string       `json:"surname" `
-	Email       string       `json:"email" `
-	Password    string       `json:"password" `
-	DateOfBirth DateOnly     `json:"date_of_birth" example:"2006-01-02" swaggertype:"primitive,string" format:"date"`
-	Role        UserRoleType `json:"role" swaggertype:"primitive,string" example:"user"`
+	Name        string   `json:"name" `
+	Patronymic  string   `json:"patronymic" `
+	Surname     string   `json:"surname" `
+	Email       string   `json:"email" `
+	Password    string   `json:"password" `
+	DateOfBirth DateOnly `json:"date_of_birth" example:"2006-01-02" swaggertype:"primitive,string" format:"date"`
 }
