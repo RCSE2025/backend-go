@@ -5,6 +5,7 @@ import (
 	"github.com/RCSE2025/backend-go/internal/http/middleware/auth"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/service"
+	"github.com/RCSE2025/backend-go/pkg/api/response"
 	"github.com/gin-gonic/gin"
 	"net/http"
 )
@@ -79,5 +80,5 @@ func (ur *businessRoutes) GetBusinessInfoByINN(c *gin.Context) {
 // @Router      /business/{id} [get]
 // @Param id path string true "id"
 func (ur *businessRoutes) GetBusinessByID(c *gin.Context) {
-
+	_ = response.Response{}
 }
