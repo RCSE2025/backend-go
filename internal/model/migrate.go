@@ -14,6 +14,7 @@ func RunMigrations(db *gorm.DB) error {
 		ProductImage{},
 		ProductSpecification{},
 		ProductReview{},
+		ReviewImages{},
 		CartItem{},
 		Order{},
 		OrderItem{},

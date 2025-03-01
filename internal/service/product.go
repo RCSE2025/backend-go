@@ -9,21 +9,27 @@ import (
 
 // ProductService представляет сервис для работы с продуктами
 type ProductService struct {
-	repo     *repo.ProductRepo
-	s3Worker *utils.S3WorkerAPI
+	repo           *repo.ProductRepo
+	s3Worker       *utils.S3WorkerAPI
+	s3WorkerReview *utils.S3WorkerAPI
 }
 
 // NewProductService создает новый экземпляр ProductService
-func NewProductService(repo *repo.ProductRepo, s3Worker *utils.S3WorkerAPI) *ProductService {
+func NewProductService(repo *repo.ProductRepo, s3Worker, s3WorkerReview *utils.S3WorkerAPI) *ProductService {
 	return &ProductService{
-		repo:     repo,
-		s3Worker: s3Worker,
+		repo:           repo,
+		s3Worker:       s3Worker,
+		s3WorkerReview: s3WorkerReview,
 	}
 }
 
 // GetS3Worker возвращает S3 Worker API
 func (s *ProductService) GetS3Worker() *utils.S3WorkerAPI {
 	return s.s3Worker
+}
+
+func (s *ProductService) GetS3WorkerReview() *utils.S3WorkerAPI {
+	return s.s3WorkerReview
 }
 
 // GetProductByID возвращает продукт по его ID
@@ -79,7 +85,7 @@ func (s *ProductService) GetProductImages(ctx context.Context, productID int64) 
 // GetProductCategories возвращает все категории продуктов
 func (s *ProductService) GetProductCategories() []model.CategoryFilter {
 	categories := make([]model.CategoryFilter, 0, len(model.ProductCategoryMap))
-	
+
 	for category, title := range model.ProductCategoryMap {
 		categoryFilter := model.CategoryFilter{
 			ID:       string(category),
@@ -92,4 +98,12 @@ func (s *ProductService) GetProductCategories() []model.CategoryFilter {
 	}
 
 	return categories
+}
+
+func (s *ProductService) AddReviewImage(image model.ReviewImages) (model.ReviewImages, error) {
+	return s.repo.UploadReviewImages(image)
+}
+
+func (s *ProductService) GetReviewImages(reviewID int64) ([]model.ReviewImages, error) {
+	return s.repo.GetReviewImages(reviewID)
 }

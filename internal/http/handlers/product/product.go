@@ -35,6 +35,7 @@ func NewProductRoutes(h *gin.RouterGroup, jwtService service.JWTService, product
 	g.POST("", pr.createProduct)
 	g.PUT("/:id", pr.updateProduct)
 	g.DELETE("/:id", pr.deleteProduct)
+	g.POST("/:id/images/upload", pr.UploadReviewFile)
 }
 
 // uploadImages
@@ -495,4 +496,128 @@ func (pr *productRoutes) deleteProduct(c *gin.Context) {
 
 	log.Info("product deleted", slog.Int64("id", id))
 	c.JSON(http.StatusNoContent, nil)
+}
+
+// UploadReviewFile
+// @Summary     Upload multiple images for review
+// @Description Upload multiple images for review
+// @Tags  	    product
+// @Accept      multipart/form-data
+// @Produce     json
+// @Param       upload formData []file true "Upload multiple images"
+// @Param       review_id query int false "Review ID"
+// @Param       is_primary query bool false "Is primary image"
+// @Success     200 {object} response.Response{data=[]model.ProductImage} "Successful upload"
+// @Failure     400 {object} response.Response "Bad request"
+// @Failure     500 {object} response.Response "Internal server error"
+// @Router      /product/{id}/images/upload [post]
+func (pr *productRoutes) UploadReviewFile(c *gin.Context) {
+	const op = "handlers.product.UploadReviewFile"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	// Получаем ID продукта из query параметра (если есть)
+	reviewIDStr := c.Query("review_id")
+	var reviewID int64
+	if reviewIDStr != "" {
+		var err error
+		reviewID, err = strconv.ParseInt(reviewIDStr, 10, 64)
+		if err != nil {
+			log.Error("invalid review id", slog.String("error", err.Error()))
+			c.JSON(http.StatusBadRequest, response.Error("Invalid review ID"))
+			return
+		}
+	}
+
+	// Получаем флаг основного изображения из query параметра (если есть)
+	isPrimaryStr := c.Query("is_primary")
+	isPrimary := isPrimaryStr == "true"
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		log.Error("failed to parse form", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Invalid form data"))
+		return
+	}
+
+	files, exists := form.File["upload"]
+	if !exists || len(files) == 0 {
+		log.Warn("no files uploaded")
+		c.JSON(http.StatusBadRequest, response.Error("No files uploaded"))
+		return
+	}
+
+	// Получаем S3 клиент из сервиса
+	s3Worker := pr.productService.GetS3WorkerReview()
+
+	// Загружаем файлы в S3
+	var uploadedImages []model.ReviewImages
+	for i, file := range files {
+		// Проверяем тип файла
+		if !isImageFile(file.Filename) {
+			log.Warn("invalid file type", slog.String("filename", file.Filename))
+			continue
+		}
+
+		// Загружаем файл в S3
+		filename, err := s3Worker.UploadFileFromMultipart(file)
+		if err != nil {
+			log.Error("failed to upload file to S3",
+				slog.String("filename", file.Filename),
+				slog.String("error", err.Error()),
+			)
+			continue
+		}
+
+		// Получаем URL файла
+		fileURL, err := s3Worker.GetFileURL(filename)
+		if err != nil {
+			log.Error("failed to get file URL",
+				slog.String("filename", filename),
+				slog.String("error", err.Error()),
+			)
+			continue
+		}
+
+		// Создаем запись об изображении
+		image := model.ReviewImages{
+			ReviewID:  reviewID,
+			FileUUID:  filename,
+			URL:       filename,
+			IsPrimary: isPrimary && i == 0, // Только первое изображение может быть основным
+		}
+		// Устанавливаем временные метки
+		image.SetTimestamps()
+
+		// Если указан ID продукта, сохраняем изображение в базе
+		if reviewID > 0 {
+			savedImage, err := pr.productService.AddReviewImage(image)
+			if err != nil {
+				log.Error("failed to save image to database",
+					slog.String("filename", filename),
+					slog.String("error", err.Error()),
+				)
+				continue
+			}
+			uploadedImages = append(uploadedImages, savedImage)
+		} else {
+			// Если ID продукта не указан, просто добавляем изображение в результат
+			uploadedImages = append(uploadedImages, image)
+		}
+
+		log.Info("file uploaded successfully",
+			slog.String("filename", file.Filename),
+			slog.String("s3_filename", filename),
+			slog.String("url", fileURL),
+		)
+	}
+
+	if len(uploadedImages) == 0 {
+		c.JSON(http.StatusInternalServerError, response.Error("Failed to upload any images"))
+		return
+	}
+
+	c.JSON(http.StatusOK, uploadedImages)
 }
