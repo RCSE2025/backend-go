@@ -2256,6 +2256,9 @@ const docTemplate = `{
         "model.OrderItemResponse": {
             "type": "object",
             "properties": {
+                "address": {
+                    "type": "string"
+                },
                 "created_at": {
                     "type": "string"
                 },
@@ -2267,6 +2270,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.ExtendedOrderItem"
                     }
+                },
+                "payment_confirm": {
+                    "type": "boolean"
                 },
                 "status": {
                     "type": "string"

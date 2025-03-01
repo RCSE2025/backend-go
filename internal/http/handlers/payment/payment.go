@@ -38,6 +38,12 @@ type notification struct {
 // @Success 200
 // @Router /payment/notifications [post]
 func (pr *paymentRoutes) notification(c *gin.Context) {
+	var t map[string]interface{}
+	if err := c.ShouldBindJSON(&t); err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+	fmt.Println(t)
 
 	var req notification
 	if err := c.ShouldBindJSON(&req); err != nil {
