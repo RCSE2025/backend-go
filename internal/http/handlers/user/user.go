@@ -51,7 +51,7 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 // @Failure     500 {object} response.Response
 // @Failure     404 {object} response.Response
 // @Param request body model.UserCreate true "request"
-// @Success     201 {object} model.User`
+// @Success     201 {object} model.Token`
 // @Router      /user [post]
 func (r *userRoutes) CreateUser(c *gin.Context) {
 	const op = "handlers.user.CreateUser"
@@ -66,7 +66,7 @@ func (r *userRoutes) CreateUser(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
-	userDB, err := r.s.CreateUser(user)
+	_, err := r.s.CreateUser(user)
 	if err != nil {
 		log.Error("cannot create user", sl.Err(err))
 
@@ -79,7 +79,18 @@ func (r *userRoutes) CreateUser(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, userDB)
+	token, err := r.s.GetToken(user.Email, user.Password)
+	if err != nil {
+		log.Error("cannot get token", sl.Err(err))
+		if errors.Is(err, service.ErrWrongEmailOrPassword) {
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+			return
+		}
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+
+	c.JSON(http.StatusOK, token)
 }
 
 // GetUserByID
