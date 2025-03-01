@@ -947,6 +947,18 @@ paths:
       summary: Set Order status
       tags:
       - order
+  /payment/notifications:
+    post:
+      consumes:
+      - application/json
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+      summary: Payment notification
+      tags:
+      - Payment
   /product:
     post:
       consumes:
