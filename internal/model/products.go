@@ -1,13 +1,5 @@
 package model
 
-//
-//- id 		PK[int]
-//- business_id	FK[int] -> Businesses
-//- price		Decimal or float
-//- title		str
-//- description 	str
-//- quantity	int
-
 type Product struct {
 	baseModel
 	ID          int64   `json:"id" gorm:"primaryKey;autoIncrement"`

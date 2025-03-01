@@ -14,11 +14,10 @@ func NewMailer(emailConfig config.EmailConfig) *Mailer {
 	dialer := gomail.NewDialer(
 		emailConfig.Host,
 		emailConfig.Port,
-		emailConfig.AuthEmail, //emailConfig.AuthEmail, // TODO: исправить на самом хаке
+		emailConfig.AuthEmail,
 		emailConfig.AuthPassword,
 	)
 
-	//dialer.Auth = smtp.PlainAuth("", emailConfig.AuthEmail, emailConfig.AuthPassword, emailConfig.Host)
 	return &Mailer{
 		from:   emailConfig.From,
 		dialer: dialer,
