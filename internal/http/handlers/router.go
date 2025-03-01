@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"github.com/RCSE2025/backend-go/docs"
+	"github.com/RCSE2025/backend-go/internal/http/handlers/cart"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/product"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/user"
 	"github.com/RCSE2025/backend-go/internal/http/middleware"
@@ -26,7 +27,7 @@ import (
 // @tokenUrl /user/token
 // @scope.read Grants read access
 // @scope.write Grants write access
-func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService) {
+func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, cs *service.CartService, jwtService service.JWTService) {
 
 	r.Use(requestid.New()) // Equivalent to middleware.RequestID
 
@@ -58,5 +59,6 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtServ
 	h := r.Group("")
 
 	user.NewUserRoutes(h, us, jwtService)
+	cart.NewCartRoutes(h, cs, jwtService)
 	product.NewProductRoutes(h, jwtService)
 }

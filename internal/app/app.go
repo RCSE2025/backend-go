@@ -60,8 +60,10 @@ func Run() {
 
 	userRepo := repo.NewUserRepo(db)
 	userService := service.NewUserService(userRepo, jwtService, mailer)
+	cartRepo := repo.NewCartRepo(db)
+	cartService := service.NewCartService(cartRepo)
 
-	handlers.NewRouter(r, log, userService, jwtService)
+	handlers.NewRouter(r, log, userService, cartService, jwtService)
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 

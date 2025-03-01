@@ -30,3 +30,5 @@ type OrderItem struct {
 	Quantity  int     `json:"quantity" gorm:"not null"`
 	Price     float64 `json:"price" gorm:"not null"`
 }
+
+func (OrderItem) TableName() string { return "order_items" }

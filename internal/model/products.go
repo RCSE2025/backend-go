@@ -32,3 +32,8 @@ type ProductImage struct {
 func (ProductImage) TableName() string {
 	return "product_images"
 }
+
+type ProductWithImages struct {
+	Product
+	Images []string `json:"images"`
+}
