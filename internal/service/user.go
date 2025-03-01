@@ -9,7 +9,9 @@ import (
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/repo"
 	"github.com/RCSE2025/backend-go/internal/utils"
+	"github.com/RCSE2025/backend-go/pkg/logger/sl"
 	"html/template"
+	"log/slog"
 	"math/big"
 	"time"
 )
@@ -41,13 +43,14 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 
 	userDB, err := s.repo.CreateUser(
 		model.User{
-			Name:         user.Name,
-			Patronymic:   user.Patronymic,
-			Surname:      user.Surname,
-			Email:        user.Email,
-			PasswordHash: passwordHash,
-			DateOfBirth:  user.DateOfBirth,
-			Role:         model.UserRole,
+			Name:              user.Name,
+			Patronymic:        user.Patronymic,
+			Surname:           user.Surname,
+			Email:             user.Email,
+			PasswordHash:      passwordHash,
+			DateOfBirth:       user.DateOfBirth,
+			Role:              model.UserRole,
+			IsPasportVerified: user.IsPasportVerified,
 		},
 	)
 
@@ -61,11 +64,12 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 		return model.User{}, err
 	}
 
-	err = s.mailer.SendMail(user.Email, "Подтверждение почты", body)
-
-	if err != nil {
-		return model.User{}, err
-	}
+	go func() {
+		err = s.mailer.SendMail(user.Email, "Подтверждение почты", body)
+		if err != nil {
+			slog.Error("cannot send verification email", sl.Err(err))
+		}
+	}()
 
 	if err != nil {
 		return model.User{}, err
@@ -353,11 +357,18 @@ func (s *UserService) SendResetPasswordEmail(email string) error {
 		return err
 	}
 
-	if err := s.mailer.SendMail(user.Email, "Восстановление пароля", body); err != nil {
-		return err
-	}
+	go func() {
+		if err := s.mailer.SendMail(user.Email, "Восстановление пароля", body); err != nil {
+			slog.Error("cannot send verification email", sl.Err(err))
+
+		}
+	}()
 
 	return nil
+}
+
+func (s *UserService) UpdateUser(userID int64, user model.User) error {
+	return s.repo.UpdateUser(userID, user)
 }
 
 func (s *UserService) GenerateRefreshPasswordToken(user model.User) (string, error) {

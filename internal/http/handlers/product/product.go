@@ -96,10 +96,10 @@ func (pr *productRoutes) uploadImages(c *gin.Context) {
 	var uploadedImages []model.ProductImage
 	for i, file := range files {
 		// Проверяем тип файла
-		if !isImageFile(file.Filename) {
-			log.Warn("invalid file type", slog.String("filename", file.Filename))
-			continue
-		}
+		//if !isImageFile(file.Filename) {
+		//	log.Warn("invalid file type", slog.String("filename", file.Filename))
+		//	continue
+		//}
 
 		// Загружаем файл в S3
 		filename, err := s3Worker.UploadFileFromMultipart(file)

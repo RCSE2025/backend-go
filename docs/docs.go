@@ -2150,9 +2150,7 @@ const docTemplate = `{
                     "type": "string"
                 },
                 "date_of_birth": {
-                    "type": "string",
-                    "format": "date",
-                    "example": "2006-01-02"
+                    "type": "string"
                 },
                 "email": {
                     "type": "string"
@@ -2184,9 +2182,7 @@ const docTemplate = `{
             "type": "object",
             "properties": {
                 "date_of_birth": {
-                    "type": "string",
-                    "format": "date",
-                    "example": "2006-01-02"
+                    "type": "string"
                 },
                 "email": {
                     "type": "string"

@@ -13,6 +13,7 @@ x-user_api-variables: &user_api-variables
   SMTP_HOST: mail.hosting.reg.ru
   SMTP_PORT: 587
   MAIL_FROM: info@ryazan-market.ru
+  S3_WORKER_URL: https://api.files.ryazan-market.ru
 
 
 services:
@@ -62,21 +63,20 @@ services:
     healthcheck:
       test: [ 'CMD', 'pg_isready', '-h', 'localhost' ]
 
-#  backend-go-pgadmin:
-#    image: dpage/pgadmin4:8.11
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-#    ports:
-#      - "31249:80"
-#    volumes:
-#      - pgadmin-data_volume:/var/lib/pgadmin
-#    labels:
-#      logging: "promtail"
-#      logging_jobname: "containerlogs"
+  backend-go-pgadmin:
+    image: dpage/pgadmin4:8.11
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "dev@mail.ru"
+      PGADMIN_DEFAULT_PASSWORD: "oosdfouhsdfouh98w48"
+    ports:
+      - "31249:80"
+    volumes:
+      - pgadmin-data_volume:/var/lib/pgadmin
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
 
 
 volumes:
   backend-go-postgres_data_volume:
-  backend-go-pgadmin-data_volume:
-
+  pgadmin-data_volume:
