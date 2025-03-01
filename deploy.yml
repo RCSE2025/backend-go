@@ -89,12 +89,12 @@ services:
     networks:
       - "default"
 
-#  backend-go-pgadmin:
-#    labels:
-#      logging: "promtail"
-#      logging_jobname: "containerlogs"
-#    networks:
-#      - "default"
+  backend-go-pgadmin:
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
+    networks:
+      - "default"
 
 networks:
   default:

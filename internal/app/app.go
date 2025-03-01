@@ -70,7 +70,12 @@ func Run() {
 	s3Worker := utils.NewS3WorkerAPI("products", cfg.S3WorkerURL)
 	productService := service.NewProductService(productRepo, s3Worker)
 	cartService := service.NewCartService(cartRepo, productRepo)
+
 	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, orderService)
+
+	businessService := service.NewBusinessService(repo.NewBusinessRepo(db), userRepo)
+	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, businessService)
+
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 

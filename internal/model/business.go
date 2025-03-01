@@ -1,14 +1,5 @@
 package model
 
-//- id			PK[int]
-//- INN		Unique[int]
-//OPTIONAL:
-//- OGRN		Unique[BigInt]
-//- owner		str
-//- short_name 	str # Название орги в кратком виде: ООО "лалалала"
-//- full_name	str # Название орги в полном виде: общество с ограниченной ответственностью "лалалалала"
-//- address		json
-
 type Business struct {
 	BaseModel
 	ID        int64   `json:"id" gorm:"primaryKey;autoIncrement"`

@@ -29,6 +29,7 @@ func NewUserRoutes(h *gin.RouterGroup, s *service.UserService, jwtService servic
 	validateJWTmw := auth.ValidateJWT(jwtService)
 	onlyAdmin := admin.OnlyAdmin()
 	g.POST("", ur.CreateUser)
+	g.PUT("", validateJWTmw, ur.UpdateUser)
 	g.GET("/self", validateJWTmw, ur.Self)
 	g.DELETE("/self", validateJWTmw, ur.DeleteSelf)
 	g.GET("/:id", validateJWTmw, onlyAdmin, ur.GetUserByID)
@@ -498,4 +499,38 @@ func (r *userRoutes) DeleteSelf(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, response.Success("user deleted"))
+}
+
+// UpdateUser
+// @Summary     Update user
+// @Description Update user
+// @Tags  	    user
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Failure     404 {object} response.Response
+// @Success     200 {object} response.Response
+// @Param request body model.User true "request"
+// @Router      /user [put]
+// @Security OAuth2PasswordBearer
+func (r *userRoutes) UpdateUser(c *gin.Context) {
+	const op = "handlers.user.UpdateUser"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+	var user model.User
+	if err := c.ShouldBind(&user); err != nil {
+		log.Error("cannot bind request", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+	userID := c.GetInt64("user_id")
+	err := r.s.UpdateUser(userID, user)
+	if err != nil {
+		log.Error("cannot update user", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.Success("user updated"))
 }
