@@ -2,6 +2,7 @@ package repo
 
 import (
 	"context"
+	"fmt"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"gorm.io/gorm"
 )
@@ -88,20 +89,23 @@ func (r *ProductRepo) AddProductReview(ctx context.Context, review model.Product
 }
 
 // FilterProducts фильтрует продукты по заданным критериям
-func (r *ProductRepo) FilterProducts(ctx context.Context, filters model.ProductFilters) ([]model.Product, error) {
+func (r *ProductRepo) FilterProducts(ctx context.Context, filters model.ProductQueryParams) ([]model.Product, error) {
 	query := r.db.Model(&model.Product{})
 
+	fmt.Println(filters)
 	// Применяем фильтры
 	if filters.SearchQuery != "" {
 		query = query.Where("title LIKE ? OR description LIKE ?", "%"+filters.SearchQuery+"%", "%"+filters.SearchQuery+"%")
 	}
 
 	if len(filters.Categories) > 0 {
+		fmt.Println("categories", filters.Categories)
+
 		query = query.Where("category IN ?", filters.Categories)
 	}
 
-	if filters.PriceRange != nil {
-		query = query.Where("price BETWEEN ? AND ?", filters.PriceRange.Min, filters.PriceRange.Max)
+	if filters.MaxPrice != 0 && filters.MinPrice != 0 {
+		query = query.Where("price BETWEEN ? AND ?", filters.MinPrice, filters.MaxPrice)
 	}
 
 	if len(filters.Brands) > 0 {

@@ -331,8 +331,8 @@ func (pr *productRoutes) addProductReview(c *gin.Context) {
 // @Tags  	    product
 // @Accept      json
 // @Produce     json
-// @Param       filters query model.ProductFilters false "Filter criteria"
-// @Success     200 {object} response.Response{data=[]model.Product} "Successful operation"
+// @Param       filters query model.ProductQueryParams false "Filter criteria"
+// @Success     200 {object} []model.Product "Successful operation"
 // @Failure     400 {object} response.Response "Bad request"
 // @Failure     500 {object} response.Response "Internal server error"
 // @Router      /product/filter [get]
@@ -343,7 +343,7 @@ func (pr *productRoutes) filterProducts(c *gin.Context) {
 		slog.String("request_id", requestid.Get(c)),
 	)
 
-	var filters model.ProductFilters
+	var filters model.ProductQueryParams
 	if err := c.ShouldBindQuery(&filters); err != nil {
 		log.Error("failed to bind filter data", slog.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, response.Error("Invalid filter data"))
