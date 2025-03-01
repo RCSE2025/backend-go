@@ -62,18 +62,18 @@ services:
     healthcheck:
       test: [ 'CMD', 'pg_isready', '-h', 'localhost' ]
 
-#  backend-go-pgadmin:
-#    image: dpage/pgadmin4:8.11
-#    environment:
-#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
-#    ports:
-#      - "31249:80"
-#    volumes:
-#      - pgadmin-data_volume:/var/lib/pgadmin
-#    labels:
-#      logging: "promtail"
-#      logging_jobname: "containerlogs"
+  backend-go-pgadmin:
+    image: dpage/pgadmin4:8.11
+    environment:
+      PGADMIN_DEFAULT_EMAIL: "dev@localhost"
+      PGADMIN_DEFAULT_PASSWORD: "oosdfouhsdfouh98w48"
+    ports:
+      - "31249:80"
+    volumes:
+      - pgadmin-data_volume:/var/lib/pgadmin
+    labels:
+      logging: "promtail"
+      logging_jobname: "containerlogs"
 
 
 volumes:
