@@ -81,3 +81,7 @@ func (r *UserRepo) VerifyEmail(userID int64) error {
 func (r *UserRepo) SetPassword(userID int64, passwordHash string) error {
 	return r.db.Model(&model.User{}).Where("id = ?", userID).Update("password_hash", passwordHash).Error
 }
+
+func (r *UserRepo) UpdateUser(userID int64, user model.User) error {
+	return r.db.Model(&model.User{}).Where("id = ?", userID).Updates(user).Error
+}

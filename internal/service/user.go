@@ -366,6 +366,10 @@ func (s *UserService) SendResetPasswordEmail(email string) error {
 	return nil
 }
 
+func (s *UserService) UpdateUser(userID int64, user model.User) error {
+	return s.repo.UpdateUser(userID, user)
+}
+
 func (s *UserService) GenerateRefreshPasswordToken(user model.User) (string, error) {
 	token, err := s.jwtService.GenerateRefreshPasswordToken(user.ID)
 	if err != nil {
