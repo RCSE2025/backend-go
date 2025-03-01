@@ -3,6 +3,7 @@ package cart
 import (
 	"github.com/RCSE2025/backend-go/internal/http/middleware/auth"
 	"github.com/RCSE2025/backend-go/internal/http/middleware/logger"
+	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/service"
 	"github.com/RCSE2025/backend-go/pkg/api/response"
 	"github.com/RCSE2025/backend-go/pkg/logger/sl"
@@ -26,6 +27,7 @@ func NewCartRoutes(h *gin.RouterGroup, cs *service.CartService, jwtService servi
 	g.GET("", validateJWTmw, ur.GetCartProduct)
 	g.POST("", validateJWTmw, ur.PostCartProduct)
 	g.DELETE("", validateJWTmw, ur.DeleteCartProduct)
+	g.PUT("", validateJWTmw, ur.SetCartQuantity)
 }
 
 type PostProductRequest struct {
@@ -120,9 +122,50 @@ func (cr *cartRoutes) GetCartProduct(c *gin.Context) {
 
 	userCard, err := cr.cartService.GetUserCart(c.GetInt64("user_id"))
 	if err != nil {
-		log.Error("cannot delete product in user cart", sl.Err(err))
+		log.Error("cannot get product in user cart", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
 		return
 	}
+	if userCard == nil {
+		userCard = make([]model.CartItemsResponse, 0)
+	}
 	c.JSON(http.StatusOK, userCard)
+}
+
+type SetQuantityRequest struct {
+	ProductID int64 `json:"product_id"`
+	Quantity  int   `json:"quantity"`
+}
+
+// SetCartQuantity
+// @Summary 	Set product quantity in cart
+// @Description Set product quantity in cart
+// @Tags		cart
+// @Accept		json
+// @Produce		json
+// @Failure 	500 {object} response.Response
+// @Success		200 {object} response.Response
+// @Router		/cart [put]
+// @Security OAuth2PasswordBearer
+// @Param request body SetQuantityRequest true "request"
+func (cr *cartRoutes) SetCartQuantity(c *gin.Context) {
+	const op = "handlers.cart.SetCartQuantity"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)))
+
+	var req SetQuantityRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		log.Error("cannot bind request", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+
+	err := cr.cartService.SetCartQuantity(c.GetInt64("user_id"), req.ProductID, req.Quantity)
+	if err != nil {
+		log.Error("cannot set product quantity in user cart", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		return
+	}
+	c.JSON(http.StatusOK, response.OK())
 }
