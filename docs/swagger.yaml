@@ -67,6 +67,47 @@ definitions:
       title:
         type: string
     type: object
+  model.ExtendedOrderItem:
+    properties:
+      order_item:
+        $ref: '#/definitions/model.OrderItem'
+      product:
+        $ref: '#/definitions/model.Product'
+    type: object
+  model.OrderItem:
+    properties:
+      created_at:
+        type: string
+      order_id:
+        type: integer
+      price:
+        type: number
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
+  model.OrderItemResponse:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      order_items:
+        items:
+          $ref: '#/definitions/model.ExtendedOrderItem'
+        type: array
+      status:
+        type: string
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+    type: object
   model.PriceRange:
     properties:
       max:
@@ -321,6 +362,20 @@ definitions:
       surname:
         type: string
     type: object
+  order.CreateOrderRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
+  order.SetOrderStatusRequest:
+    properties:
+      order_id:
+        type: integer
+      status:
+        type: string
+    type: object
   response.Response:
     properties:
       error:
@@ -464,7 +519,9 @@ paths:
         "200":
           description: OK
           schema:
-            $ref: '#/definitions/model.CartItemsResponse'
+            items:
+              $ref: '#/definitions/model.CartItemsResponse'
+            type: array
         "500":
           description: Internal Server Error
           schema:
@@ -532,6 +589,85 @@ paths:
       summary: Set product quantity in cart
       tags:
       - cart
+  /order:
+    get:
+      consumes:
+      - application/json
+      description: Get List Order
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.OrderItemResponse'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get List Order
+      tags:
+      - order
+    post:
+      consumes:
+      - application/json
+      description: Create new order
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            $ref: '#/definitions/order.CreateOrderRequest'
+          type: array
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Create Order
+      tags:
+      - order
+    put:
+      consumes:
+      - application/json
+      description: Set Order status
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.SetOrderStatusRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Set Order status
+      tags:
+      - order
   /product:
     post:
       consumes:
