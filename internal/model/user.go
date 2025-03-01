@@ -1,5 +1,7 @@
 package model
 
+import "time"
+
 // User - модель пользователя с тегами JSON и GORM
 type User struct {
 	BaseModel
@@ -9,7 +11,7 @@ type User struct {
 	Surname         string       `json:"surname" gorm:"size:100;not null"`
 	Email           string       `json:"email" gorm:"unique;not null"`
 	PasswordHash    string       `json:"-" gorm:"not null"` // "-" исключает поле из JSON
-	DateOfBirth     DateOnly     `json:"date_of_birth" gorm:"type:DATE"  example:"2006-01-02" swaggertype:"primitive,string" format:"date"`
+	DateOfBirth     time.Time    `json:"date_of_birth" gorm:"null"`
 	IsEmailVerified bool         `json:"is_email_verified" gorm:"default:false"`
 	Role            UserRoleType `json:"role" gorm:"default:user" swaggertype:"primitive,string"`
 }
@@ -33,10 +35,10 @@ func (User) TableName() string {
 }
 
 type UserCreate struct {
-	Name        string   `json:"name" `
-	Patronymic  string   `json:"patronymic" `
-	Surname     string   `json:"surname" `
-	Email       string   `json:"email" `
-	Password    string   `json:"password" `
-	DateOfBirth DateOnly `json:"date_of_birth" example:"2006-01-02" swaggertype:"primitive,string" format:"date"`
+	Name        string    `json:"name" `
+	Patronymic  string    `json:"patronymic" `
+	Surname     string    `json:"surname" `
+	Email       string    `json:"email" `
+	Password    string    `json:"password" `
+	DateOfBirth time.Time `json:"date_of_birth" `
 }
