@@ -897,6 +897,25 @@ const docTemplate = `{
                 }
             }
         },
+        "/payment/notifications": {
+            "post": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Payment"
+                ],
+                "summary": "Payment notification",
+                "responses": {
+                    "200": {
+                        "description": "OK"
+                    }
+                }
+            }
+        },
         "/product": {
             "post": {
                 "description": "Create a new product",

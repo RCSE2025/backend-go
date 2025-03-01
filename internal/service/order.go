@@ -9,11 +9,14 @@ import (
 type OrderService struct {
 	repo        *repo.OrderRepo
 	productRepo *repo.ProductRepo
+	yookassa    *YookassaPayment
 }
 
-func NewOrderService(repo *repo.OrderRepo, productRepo *repo.ProductRepo) *OrderService {
+func NewOrderService(repo *repo.OrderRepo, productRepo *repo.ProductRepo, yookassa *YookassaPayment) *OrderService {
 	return &OrderService{
-		repo: repo, productRepo: productRepo,
+		repo:        repo,
+		productRepo: productRepo,
+		yookassa:    yookassa,
 	}
 }
 
