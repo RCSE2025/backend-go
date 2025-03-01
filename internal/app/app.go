@@ -71,11 +71,8 @@ func Run() {
 	productService := service.NewProductService(productRepo, s3Worker)
 	cartService := service.NewCartService(cartRepo, productRepo)
 
-	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, orderService)
-
 	businessService := service.NewBusinessService(repo.NewBusinessRepo(db), userRepo)
-	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, businessService)
-
+	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, businessService, orderService)
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 

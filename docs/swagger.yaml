@@ -108,13 +108,6 @@ definitions:
       user_id:
         type: integer
     type: object
-  model.PriceRange:
-    properties:
-      max:
-        type: number
-      min:
-        type: number
-    type: object
   model.Product:
     properties:
       brand:
@@ -336,6 +329,8 @@ definitions:
         type: integer
       is_email_verified:
         type: boolean
+      is_pasport_verified:
+        type: boolean
       name:
         type: string
       patronymic:
@@ -353,6 +348,8 @@ definitions:
         type: string
       email:
         type: string
+      is_pasport_verified:
+        type: boolean
       name:
         type: string
       password:
@@ -410,6 +407,37 @@ paths:
           description: Created
           schema:
             $ref: '#/definitions/model.Business'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Create business
+      tags:
+      - business
+  /business/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Delete business
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
         "404":
           description: Not Found
           schema:
@@ -418,10 +446,11 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
-      summary: Create business
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Delete business
       tags:
       - business
-  /business/{id}:
     get:
       consumes:
       - application/json
@@ -435,10 +464,10 @@ paths:
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
+        "200":
+          description: OK
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/model.Business'
         "404":
           description: Not Found
           schema:
@@ -447,11 +476,176 @@ paths:
           description: Internal Server Error
           schema:
             $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
       summary: Get business by id
       tags:
       - business
-  /business/get_business_info/{inn}:
+    put:
+      consumes:
+      - application/json
+      description: Update business
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.Business'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Update business
+      tags:
+      - business
+  /business/{id}/user/{user_id}:
+    delete:
+      consumes:
+      - application/json
+      description: Remove user from business
+      parameters:
+      - description: business id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Remove user from business
+      tags:
+      - business
     post:
+      consumes:
+      - application/json
+      description: Add user to business
+      parameters:
+      - description: business id
+        in: path
+        name: id
+        required: true
+        type: string
+      - description: user id
+        in: path
+        name: user_id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Add user to business
+      tags:
+      - business
+  /business/{id}/users:
+    get:
+      consumes:
+      - application/json
+      description: Get all users for a business
+      parameters:
+      - description: id
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.User'
+            type: array
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get business users
+      tags:
+      - business
+  /business/all:
+    get:
+      consumes:
+      - application/json
+      description: Get all businesses
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Business'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get all businesses
+      tags:
+      - business
+  /business/get_business_info/{inn}:
+    get:
       consumes:
       - application/json
       description: Get business info by INN
@@ -477,6 +671,91 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Get business info by INN from api
+      tags:
+      - business
+  /business/inn/{inn}:
+    get:
+      consumes:
+      - application/json
+      description: Get business by INN
+      parameters:
+      - description: inn
+        in: path
+        name: inn
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Business'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get business by INN
+      tags:
+      - business
+  /business/ogrn/{ogrn}:
+    get:
+      consumes:
+      - application/json
+      description: Get business by OGRN
+      parameters:
+      - description: ogrn
+        in: path
+        name: ogrn
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.Business'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get business by OGRN
+      tags:
+      - business
+  /business/user:
+    get:
+      consumes:
+      - application/json
+      description: Get all businesses for a user
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              $ref: '#/definitions/model.Business'
+            type: array
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get user businesses
       tags:
       - business
   /cart:
@@ -949,14 +1228,26 @@ paths:
         name: in_stock
         type: boolean
       - in: query
+        name: max_price
+        type: number
+      - in: query
+        name: min_price
+        type: number
+      - in: query
         name: on_sale
         type: boolean
       - in: query
+        name: page
+        type: integer
+      - in: query
+        name: per_page
+        type: integer
+      - in: query
+        name: q
+        type: string
+      - in: query
         name: rating
         type: number
-      - in: query
-        name: search_query
-        type: string
       - description: price-asc, price-desc, rating, newest
         in: query
         name: sort_by
@@ -967,14 +1258,9 @@ paths:
         "200":
           description: Successful operation
           schema:
-            allOf:
-            - $ref: '#/definitions/response.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/model.Product'
-                  type: array
-              type: object
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
         "400":
           description: Bad request
           schema:
@@ -1061,6 +1347,37 @@ paths:
           schema:
             $ref: '#/definitions/response.Response'
       summary: Create user
+      tags:
+      - user
+    put:
+      consumes:
+      - application/json
+      description: Update user
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/model.User'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Update user
       tags:
       - user
   /user/{id}:

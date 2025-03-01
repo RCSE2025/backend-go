@@ -30,7 +30,7 @@ import (
 // @scope.read Grants read access
 // @scope.write Grants write access
 
-func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService, productService *service.ProductService, cartService *service.CartService, businessService *service.BusinessService) {
+func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService, productService *service.ProductService, cartService *service.CartService, businessService *service.BusinessService, orderService *service.OrderService) {
 
 	r.Use(requestid.New()) // Equivalent to middleware.RequestID
 
