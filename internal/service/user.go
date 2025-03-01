@@ -43,13 +43,14 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 
 	userDB, err := s.repo.CreateUser(
 		model.User{
-			Name:         user.Name,
-			Patronymic:   user.Patronymic,
-			Surname:      user.Surname,
-			Email:        user.Email,
-			PasswordHash: passwordHash,
-			DateOfBirth:  user.DateOfBirth,
-			Role:         model.UserRole,
+			Name:              user.Name,
+			Patronymic:        user.Patronymic,
+			Surname:           user.Surname,
+			Email:             user.Email,
+			PasswordHash:      passwordHash,
+			DateOfBirth:       user.DateOfBirth,
+			Role:              model.UserRole,
+			IsPasportVerified: user.IsPasportVerified,
 		},
 	)
 
