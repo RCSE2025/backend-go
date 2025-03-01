@@ -1,0 +1,82 @@
+version: '3.8'
+
+x-user_api-variables: &user_api-variables
+  PRODUCTION: "true"
+  DB_HOST: backend-go-pgbouncer
+  DB_PORT: 5432
+  DB_USER: postgres
+  DB_PASSWORD: postgres
+  DB_NAME: postgres
+
+  SMTP_EMAIL: test@localhost
+  SMTP_PASSWORD: test
+  SMTP_HOST: 82.146.63.6
+  SMTP_PORT: 1025
+  MAIL_FROM: test@localhost
+
+
+services:
+  backend-go:
+    build: .
+    restart: always
+    environment:
+      <<: *user_api-variables
+    healthcheck:
+      test: [ "CMD", "curl", "--fail", "http://localhost/ping" ]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - default
+    ports:
+      - "81:80"
+
+  backend-go-postgres:
+    image: postgres:16
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_DB: postgres
+    #    ports:
+    #      - "7432:5432"
+    volumes:
+      - backend-go-postgres_data_volume:/var/lib/postgresql/data
+
+  
+  backend-go-pgbouncer:
+    image: edoburu/pgbouncer:v1.23.1-p2
+    restart: always
+    environment:
+      DATABASE_URL: "postgres://postgres:postgres@backend-go-postgres:5432/postgres"
+      POOL_MODE: "session"
+      SERVER_RESET_QUERY: "DISCARD ALL"
+      MAX_CLIENT_CONN: "100"
+      AUTH_TYPE: "plain"
+      ADMIN_USERS: "postgres"
+
+    #    ports:
+    #      - "6432:5432"
+    depends_on:
+      - backend-go-postgres
+    healthcheck:
+      test: [ 'CMD', 'pg_isready', '-h', 'localhost' ]
+
+#  backend-go-pgadmin:
+#    image: dpage/pgadmin4:8.11
+#    environment:
+#      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+#      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+#    ports:
+#      - "31249:80"
+#    volumes:
+#      - pgadmin-data_volume:/var/lib/pgadmin
+#    labels:
+#      logging: "promtail"
+#      logging_jobname: "containerlogs"
+
+
+volumes:
+  backend-go-postgres_data_volume:
+  backend-go-pgadmin-data_volume:
+

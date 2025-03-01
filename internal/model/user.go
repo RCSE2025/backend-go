@@ -2,7 +2,7 @@ package model
 
 // User - модель пользователя с тегами JSON и GORM
 type User struct {
-	baseModel
+	BaseModel
 	ID              int64        `json:"id" gorm:"primaryKey;autoIncrement"`
 	Name            string       `json:"name" gorm:"size:100;not null"`
 	Patronymic      string       `json:"patronymic" gorm:"size:100"`

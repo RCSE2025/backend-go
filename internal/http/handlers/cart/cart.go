@@ -44,6 +44,7 @@ type PostProductRequest struct {
 // @Success 	200 {object} model.CartItem
 // @Router		/cart [post]
 // @Param  request body PostProductRequest true "request"
+// @Security OAuth2PasswordBearer
 func (cr *cartRoutes) PostCartProduct(c *gin.Context) {
 	const op = "handlers.cart.PostCartProduct"
 	log := logger.FromContext(c).With(
@@ -78,6 +79,7 @@ type ProductsID []int64
 // @Success		200 {object} response.Response
 // @Router		/cart [delete]
 // @Param  request body ProductsID true "request"
+// @Security OAuth2PasswordBearer
 func (cr *cartRoutes) DeleteCartProduct(c *gin.Context) {
 	const op = "handlers.cart.DeleteCartProduct"
 	log := logger.FromContext(c).With(
@@ -108,7 +110,8 @@ func (cr *cartRoutes) DeleteCartProduct(c *gin.Context) {
 // @Produce		json
 // @Failure 	500 {object} response.Response
 // @Success		200 {object} model.CartItemsResponse
-// @Router		/cart [delete]
+// @Router		/cart [get]
+// @Security OAuth2PasswordBearer
 func (cr *cartRoutes) GetCartProduct(c *gin.Context) {
 	const op = "handlers.cart.GetCartProduct"
 	log := logger.FromContext(c).With(

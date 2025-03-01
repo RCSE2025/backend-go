@@ -13,7 +13,7 @@ package model
 //- price 		Decimal or float
 
 type Order struct {
-	baseModel
+	BaseModel
 	ID     int64 `json:"id" gorm:"primaryKey;autoIncrement"`
 	UserID int64 `json:"user_id" gorm:"not null"`
 	Status string
@@ -24,11 +24,9 @@ func (Order) TableName() string {
 }
 
 type OrderItem struct {
-	baseModel
+	BaseModel
 	OrderID   int64   `json:"order_id" gorm:"not null"`
 	ProductID int64   `json:"product_id" gorm:"not null"`
 	Quantity  int     `json:"quantity" gorm:"not null"`
 	Price     float64 `json:"price" gorm:"not null"`
 }
-
-func (OrderItem) TableName() string { return "order_items" }

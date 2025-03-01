@@ -8,6 +8,7 @@ import (
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/repo"
 	"github.com/RCSE2025/backend-go/internal/service"
+	"github.com/RCSE2025/backend-go/internal/utils"
 	"github.com/RCSE2025/backend-go/pkg/httpserver"
 	"github.com/RCSE2025/backend-go/pkg/logger"
 	"github.com/RCSE2025/backend-go/pkg/logger/sl"
@@ -60,10 +61,13 @@ func Run() {
 
 	userRepo := repo.NewUserRepo(db)
 	userService := service.NewUserService(userRepo, jwtService, mailer)
-	cartRepo := repo.NewCartRepo(db)
-	cartService := service.NewCartService(cartRepo)
 
-	handlers.NewRouter(r, log, userService, cartService, jwtService)
+	// Создаем репозиторий и сервис для работы с продуктами
+	productRepo := repo.NewProductRepo(db)
+	s3Worker := utils.NewS3WorkerAPI("products", cfg.S3WorkerURL)
+	productService := service.NewProductService(productRepo, s3Worker)
+	cartService := service.NewCartService(repo.NewCartRepo(db))
+	handlers.NewRouter(r, log, userService, jwtService, productService, cartService)
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 

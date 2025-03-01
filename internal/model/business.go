@@ -10,7 +10,7 @@ package model
 //- address		json
 
 type Business struct {
-	baseModel
+	BaseModel
 	ID        int64   `json:"id" gorm:"primaryKey;autoIncrement"`
 	INN       int64   `json:"inn" gorm:"unique;not null"`
 	OGRN      *int64  `json:"ogrn,omitempty" gorm:"unique"`

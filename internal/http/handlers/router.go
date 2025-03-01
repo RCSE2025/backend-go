@@ -27,7 +27,7 @@ import (
 // @tokenUrl /user/token
 // @scope.read Grants read access
 // @scope.write Grants write access
-func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, cs *service.CartService, jwtService service.JWTService) {
+func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService, productService *service.ProductService, cartService *service.CartService) {
 
 	r.Use(requestid.New()) // Equivalent to middleware.RequestID
 
@@ -59,6 +59,6 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, cs *ser
 	h := r.Group("")
 
 	user.NewUserRoutes(h, us, jwtService)
-	cart.NewCartRoutes(h, cs, jwtService)
-	product.NewProductRoutes(h, jwtService)
+	product.NewProductRoutes(h, jwtService, productService)
+	cart.NewCartRoutes(h, cartService, jwtService)
 }

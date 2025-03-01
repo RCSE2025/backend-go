@@ -26,12 +26,13 @@ type EmailConfig struct {
 }
 
 type Config struct {
-	Port       string `env:"PORT"           env-default:"80"`
-	Host       string `env:"HOST"           env-default:"0.0.0.0"`
-	Version    string `env:"VERSION"        env-default:"1"`
-	Production bool   `env:"PRODUCTION"     env-default:"true"`
-	Database   DatabaseConfig
-	Email      EmailConfig
+	Port         string `env:"PORT"           env-default:"80"`
+	Host         string `env:"HOST"           env-default:"0.0.0.0"`
+	Version      string `env:"VERSION"        env-default:"1"`
+	Production   bool   `env:"PRODUCTION"     env-default:"true"`
+	S3WorkerURL  string `env:"S3_WORKER_URL"  env-default:"http://localhost:8000"`
+	Database     DatabaseConfig
+	Email        EmailConfig
 }
 
 var (

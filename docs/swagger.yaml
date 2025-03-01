@@ -1,4 +1,11 @@
 definitions:
+  cart.PostProductRequest:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+    type: object
   model.Business:
     properties:
       address:
@@ -18,6 +25,245 @@ definitions:
       short_name:
         type: string
       updated_at:
+        type: string
+    type: object
+  model.CartItem:
+    properties:
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  model.CartItemsResponse:
+    properties:
+      product:
+        $ref: '#/definitions/model.Product'
+      product_id:
+        type: integer
+      quantity:
+        type: integer
+      user_id:
+        type: integer
+    type: object
+  model.CategoryFilter:
+    properties:
+      category:
+        $ref: '#/definitions/model.ProductCategory'
+      id:
+        type: string
+      image:
+        type: string
+      link:
+        type: string
+      title:
+        type: string
+    type: object
+  model.PriceRange:
+    properties:
+      max:
+        type: number
+      min:
+        type: number
+    type: object
+  model.Product:
+    properties:
+      brand:
+        type: string
+      business_id:
+        type: integer
+      category:
+        $ref: '#/definitions/model.ProductCategory'
+      created_at:
+        type: string
+      description:
+        type: string
+      discount:
+        type: number
+      estimated_delivery:
+        type: string
+      id:
+        type: integer
+      images:
+        description: Загружается отдельно
+        items:
+          $ref: '#/definitions/model.ProductImage'
+        type: array
+      price:
+        type: number
+      quantity:
+        type: integer
+      rating:
+        type: number
+      related_products:
+        description: Загружается отдельно
+        items:
+          type: integer
+        type: array
+      review_count:
+        type: integer
+      reviews:
+        description: Загружается отдельно
+        items:
+          $ref: '#/definitions/model.ProductReview'
+        type: array
+      sku:
+        type: string
+      specifications:
+        description: Загружается отдельно
+        items:
+          $ref: '#/definitions/model.ProductSpecification'
+        type: array
+      title:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  model.ProductCategory:
+    enum:
+    - ELECTRONICS
+    - HOME
+    - FASHION
+    - SPORTS
+    - BEAUTY
+    - TOYS
+    - BOOKS
+    - FOOD
+    - OTHER
+    type: string
+    x-enum-varnames:
+    - ProductCategoryElectronics
+    - ProductCategoryHome
+    - ProductCategoryFashion
+    - ProductCategorySports
+    - ProductCategoryBeauty
+    - ProductCategoryToys
+    - ProductCategoryBooks
+    - ProductCategoryFood
+    - ProductCategoryOther
+  model.ProductCreateRequest:
+    properties:
+      brand:
+        type: string
+      business_id:
+        type: integer
+      category:
+        $ref: '#/definitions/model.ProductCategory'
+      description:
+        type: string
+      discount:
+        minimum: 0
+        type: number
+      estimated_delivery:
+        type: string
+      price:
+        type: number
+      quantity:
+        minimum: 0
+        type: integer
+      sku:
+        type: string
+      specifications:
+        items:
+          $ref: '#/definitions/model.ProductSpecification'
+        type: array
+      title:
+        type: string
+    required:
+    - business_id
+    - category
+    - description
+    - price
+    - quantity
+    - title
+    type: object
+  model.ProductImage:
+    properties:
+      created_at:
+        type: string
+      file_uuid:
+        type: string
+      id:
+        type: integer
+      is_primary:
+        type: boolean
+      product_id:
+        type: integer
+      updated_at:
+        type: string
+      url:
+        description: Не хранится в базе данных напрямую
+        type: string
+    type: object
+  model.ProductReview:
+    properties:
+      comment:
+        type: string
+      created_at:
+        type: string
+      date:
+        type: string
+      id:
+        type: integer
+      images:
+        description: Не хранится в базе данных напрямую
+        items:
+          type: string
+        type: array
+      product_id:
+        type: integer
+      rating:
+        type: integer
+      updated_at:
+        type: string
+      user_id:
+        type: integer
+      user_name:
+        type: string
+    type: object
+  model.ProductSpecification:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      product_id:
+        type: integer
+      updated_at:
+        type: string
+      value:
+        type: string
+    type: object
+  model.ProductUpdateRequest:
+    properties:
+      brand:
+        type: string
+      business_id:
+        type: integer
+      category:
+        $ref: '#/definitions/model.ProductCategory'
+      description:
+        type: string
+      discount:
+        minimum: 0
+        type: number
+      estimated_delivery:
+        type: string
+      price:
+        type: number
+      quantity:
+        minimum: 0
+        type: integer
+      sku:
+        type: string
+      specifications:
+        items:
+          $ref: '#/definitions/model.ProductSpecification'
+        type: array
+      title:
         type: string
     type: object
   model.Token:
@@ -175,6 +421,403 @@ paths:
       summary: Get business info by INN from api
       tags:
       - business
+  /cart:
+    delete:
+      consumes:
+      - application/json
+      description: Delete product in user cart with ids
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          items:
+            type: integer
+          type: array
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete product in cart
+      tags:
+      - cart
+    get:
+      consumes:
+      - application/json
+      description: Get user cart
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CartItemsResponse'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Get user cart
+      tags:
+      - cart
+    post:
+      consumes:
+      - application/json
+      description: Post product in cart
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/cart.PostProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/model.CartItem'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Post product in cart
+      tags:
+      - cart
+  /product:
+    post:
+      consumes:
+      - application/json
+      description: Create a new product
+      parameters:
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/model.ProductCreateRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Product created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Product'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Create a new product
+      tags:
+      - product
+  /product/{id}:
+    delete:
+      description: Delete a product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product deleted
+          schema:
+            $ref: '#/definitions/response.Response'
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Delete a product
+      tags:
+      - product
+    get:
+      description: Get product by ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Product'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get product by ID
+      tags:
+      - product
+    put:
+      consumes:
+      - application/json
+      description: Update an existing product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Product data
+        in: body
+        name: product
+        required: true
+        schema:
+          $ref: '#/definitions/model.ProductUpdateRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Product updated
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.Product'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Update a product
+      tags:
+      - product
+  /product/{id}/reviews:
+    get:
+      description: Get product reviews by product ID
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.ProductReview'
+                  type: array
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get product reviews
+      tags:
+      - product
+    post:
+      consumes:
+      - application/json
+      description: Add a new review for a product
+      parameters:
+      - description: Product ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Review data
+        in: body
+        name: review
+        required: true
+        schema:
+          $ref: '#/definitions/model.ProductReview'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Review created
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/model.ProductReview'
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "404":
+          description: Product not found
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Add product review
+      tags:
+      - product
+  /product/categories:
+    get:
+      description: Get all product categories
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.CategoryFilter'
+                  type: array
+              type: object
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Get all product categories
+      tags:
+      - product
+  /product/filter:
+    get:
+      consumes:
+      - application/json
+      description: Filter products by various criteria
+      parameters:
+      - collectionFormat: csv
+        in: query
+        items:
+          type: string
+        name: brands
+        type: array
+      - collectionFormat: csv
+        in: query
+        items:
+          enum:
+          - ELECTRONICS
+          - HOME
+          - FASHION
+          - SPORTS
+          - BEAUTY
+          - TOYS
+          - BOOKS
+          - FOOD
+          - OTHER
+          type: string
+        name: categories
+        type: array
+      - in: query
+        name: in_stock
+        type: boolean
+      - in: query
+        name: on_sale
+        type: boolean
+      - in: query
+        name: rating
+        type: number
+      - in: query
+        name: search_query
+        type: string
+      - description: price-asc, price-desc, rating, newest
+        in: query
+        name: sort_by
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful operation
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.Product'
+                  type: array
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Filter products
+      tags:
+      - product
   /product/images/upload:
     post:
       consumes:
@@ -189,13 +832,28 @@ paths:
         name: upload
         required: true
         type: array
+      - description: Product ID
+        in: query
+        name: product_id
+        type: integer
+      - description: Is primary image
+        in: query
+        name: is_primary
+        type: boolean
       produces:
       - application/json
       responses:
         "200":
           description: Successful upload
           schema:
-            $ref: '#/definitions/response.Response'
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.ProductImage'
+                  type: array
+              type: object
         "400":
           description: Bad request
           schema:
@@ -225,7 +883,7 @@ paths:
         "201":
           description: Created
           schema:
-            $ref: '#/definitions/model.User'
+            $ref: '#/definitions/model.Token'
         "404":
           description: Not Found
           schema:

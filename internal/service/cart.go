@@ -27,5 +27,4 @@ func (s *CartService) DeleteCart(userID int64, productIDs []int64) error {
 func (s *CartService) GetUserCart(userID int64) ([]model.CartItemsResponse, error) {
 	cards, err := s.repo.GetCart(userID)
 	return cards, err
-
 }
