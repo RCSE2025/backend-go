@@ -5,6 +5,7 @@ import (
 	"github.com/RCSE2025/backend-go/internal/http/handlers/business"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/cart"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/order"
+	"github.com/RCSE2025/backend-go/internal/http/handlers/payment"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/product"
 	"github.com/RCSE2025/backend-go/internal/http/handlers/user"
 	"github.com/RCSE2025/backend-go/internal/http/middleware"
@@ -29,8 +30,7 @@ import (
 // @tokenUrl /user/token
 // @scope.read Grants read access
 // @scope.write Grants write access
-
-func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService, productService *service.ProductService, cartService *service.CartService, businessService *service.BusinessService) {
+func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtService service.JWTService, productService *service.ProductService, cartService *service.CartService, businessService *service.BusinessService, orderService *service.OrderService, paymentService *service.YookassaPayment) {
 
 	r.Use(requestid.New()) // Equivalent to middleware.RequestID
 
@@ -66,4 +66,5 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtServ
 	cart.NewCartRoutes(h, cartService, jwtService)
 	order.NewOrderRoutes(h, orderService, jwtService, cartService)
 	business.NewBusinessRoutes(h, businessService, jwtService)
+	payment.NewProductRoutes(h, paymentService)
 }

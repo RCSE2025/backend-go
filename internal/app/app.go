@@ -60,23 +60,21 @@ func Run() {
 	mailer := email.NewMailer(cfg.Email)
 
 	userRepo := repo.NewUserRepo(db)
-	userService := service.NewUserService(userRepo, jwtService, mailer)
+	userService := service.NewUserService(userRepo, jwtService, mailer, cfg.FrontendURL)
 
 	// Создаем репозиторий и сервис для работы с продуктами
+	yookassa := service.NewYookassaPayment(cfg.Yookassa.AccountId, cfg.Yookassa.SecretKey)
 	productRepo := repo.NewProductRepo(db)
 	cartRepo := repo.NewCartRepo(db, productRepo)
 	orderRepo := repo.NewOrderRepo(db, productRepo)
-	orderService := service.NewOrderService(orderRepo, productRepo)
+	orderService := service.NewOrderService(orderRepo, productRepo, yookassa)
 	s3Worker := utils.NewS3WorkerAPI("products", cfg.S3WorkerURL)
 	s3WorkerReview := utils.NewS3WorkerAPI("reviews", cfg.S3WorkerURL)
 	productService := service.NewProductService(productRepo, s3Worker, s3WorkerReview)
 	cartService := service.NewCartService(cartRepo, productRepo)
 
-	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, orderService)
-
 	businessService := service.NewBusinessService(repo.NewBusinessRepo(db), userRepo)
-	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, businessService)
-
+	handlers.NewRouter(r, log, userService, jwtService, productService, cartService, businessService, orderService, yookassa)
 
 	httpServer := httpserver.New(r, httpserver.Port(cfg.Port))
 

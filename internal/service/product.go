@@ -48,7 +48,7 @@ func (s *ProductService) AddProductReview(ctx context.Context, review model.Prod
 }
 
 // FilterProducts фильтрует продукты по заданным критериям
-func (s *ProductService) FilterProducts(ctx context.Context, filters model.ProductFilters) ([]model.Product, error) {
+func (s *ProductService) FilterProducts(ctx context.Context, filters model.ProductQueryParams) ([]model.Product, error) {
 	return s.repo.FilterProducts(ctx, filters)
 }
 
@@ -91,7 +91,7 @@ func (s *ProductService) GetProductCategories() []model.CategoryFilter {
 			ID:       string(category),
 			Title:    title,
 			Image:    "/images/categories/" + string(category) + ".jpg", // Пример пути к изображению
-			Link:     "/products?category=" + string(category),          // Пример ссылки на категорию
+			Link:     "/catalog?categories=" + string(category),         // Пример ссылки на категорию
 			Category: category,
 		}
 		categories = append(categories, categoryFilter)

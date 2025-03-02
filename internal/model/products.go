@@ -152,6 +152,20 @@ type ProductFilters struct {
 	SortBy      string            `json:"sort_by,omitempty"` // price-asc, price-desc, rating, newest
 }
 
+type ProductQueryParams struct {
+	SearchQuery string            `form:"q"`
+	Categories  []ProductCategory `form:"categories"`
+	MinPrice    float64           `form:"min_price"`
+	MaxPrice    float64           `form:"max_price"`
+	Brands      []string          `form:"brands"`
+	Rating      float64           `form:"rating"`
+	InStock     *bool             `form:"in_stock"`
+	OnSale      *bool             `form:"on_sale"`
+	SortBy      string            `form:"sort_by"` // price-asc, price-desc, rating, newest
+	Page        int               `form:"page,default=1"`
+	PageSize    int               `form:"per_page,default=20"`
+}
+
 // ProductCreateRequest представляет данные для создания нового продукта
 type ProductCreateRequest struct {
 	BusinessID        int64                  `json:"business_id" binding:"required"`

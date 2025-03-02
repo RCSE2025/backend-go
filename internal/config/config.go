@@ -25,14 +25,21 @@ type EmailConfig struct {
 	From         string `env:"MAIL_FROM" env-required:"true"`
 }
 
+type YookassaСonfig struct {
+	AccountId string `env:"YOOKASSA_ACCOUNT_ID" env-required:"true"`
+	SecretKey string `env:"YOOKASSA_SECRET_KEY" env-required:"true"`
+}
+
 type Config struct {
-	Port         string `env:"PORT"           env-default:"80"`
-	Host         string `env:"HOST"           env-default:"0.0.0.0"`
-	Version      string `env:"VERSION"        env-default:"1"`
-	Production   bool   `env:"PRODUCTION"     env-default:"true"`
-	S3WorkerURL  string `env:"S3_WORKER_URL"  env-default:"http://localhost:8000"`
-	Database     DatabaseConfig
-	Email        EmailConfig
+	Port        string `env:"PORT"           env-default:"80"`
+	Host        string `env:"HOST"           env-default:"0.0.0.0"`
+	Version     string `env:"VERSION"        env-default:"1"`
+	Production  bool   `env:"PRODUCTION"     env-default:"true"`
+	S3WorkerURL string `env:"S3_WORKER_URL"  env-default:"http://localhost:8000"`
+	FrontendURL string `env:"FRONTEND_URL"   env-default:"http://localhost:3000"`
+	Database    DatabaseConfig
+	Email       EmailConfig
+	Yookassa    YookassaСonfig
 }
 
 var (
