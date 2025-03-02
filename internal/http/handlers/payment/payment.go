@@ -44,10 +44,11 @@ func (pr *paymentRoutes) notification(c *gin.Context) {
 		return
 	}
 	fmt.Println(t)
-	tt := t["metadata"].(map[string]interface{})["order_id"]
+	fmt.Println(t["metadata"])
+	tt := t["metadata"].(map[string]string)
 	fmt.Println(tt)
-	fmt.Println(tt.(string))
-	fmt.Println(tt.(int))
+	fmt.Println(tt["order_id"])
+	//fmt.Println(tt.(int))
 	var req notification
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))

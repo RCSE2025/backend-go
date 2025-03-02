@@ -52,6 +52,7 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			DateOfBirth:       user.DateOfBirth,
 			Role:              model.UserRole,
 			IsPasportVerified: user.IsPasportVerified,
+			INN:               user.INN,
 		},
 	)
 

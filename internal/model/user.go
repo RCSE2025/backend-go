@@ -15,6 +15,7 @@ type User struct {
 	IsEmailVerified   bool         `json:"is_email_verified" gorm:"default:false"`
 	Role              UserRoleType `json:"role" gorm:"default:user" swaggertype:"primitive,string"`
 	IsPasportVerified bool         `json:"is_pasport_verified" gorm:"default:false"`
+	INN               *int64       `json:"inn,omitempty" gorm:"unique,null"`
 }
 
 type UserRoleType string
@@ -43,4 +44,5 @@ type UserCreate struct {
 	Password          string    `json:"password" `
 	DateOfBirth       time.Time `json:"date_of_birth" `
 	IsPasportVerified bool      `json:"is_pasport_verified" `
+	INN               *int64    `json:"inn,omitempty" `
 }
