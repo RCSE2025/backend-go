@@ -15,6 +15,7 @@ x-user_api-variables: &user_api-variables
   MAIL_FROM: info@ryazan-market.ru
   S3_WORKER_URL: https://api.files.ryazan-market.ru
   FRONTEND_URL: https://ryazan-market.ru
+  MODERATE_MODEL_URL: http://31.128.49.187:8000
   YOOKASSA_ACCOUNT_ID: 212591
   YOOKASSA_SECRET_KEY: test_7wZSoyURwPcJA-4iFo5lwseotppiIOu4H7jUMbI9DEA
 
