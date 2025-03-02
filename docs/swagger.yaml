@@ -6,13 +6,6 @@ definitions:
       quantity:
         type: integer
     type: object
-  cart.SetQuantityRequest:
-    properties:
-      product_id:
-        type: integer
-      quantity:
-        type: integer
-    type: object
   model.Business:
     properties:
       address:
@@ -170,6 +163,8 @@ definitions:
         items:
           $ref: '#/definitions/model.ProductSpecification'
         type: array
+      status:
+        $ref: '#/definitions/model.ProductStatus'
       title:
         type: string
       updated_at:
@@ -292,6 +287,16 @@ definitions:
       value:
         type: string
     type: object
+  model.ProductStatus:
+    enum:
+    - consideration
+    - reject
+    - approve
+    type: string
+    x-enum-varnames:
+    - StatusConsideration
+    - StatusReject
+    - StatusApprove
   model.ProductUpdateRequest:
     properties:
       brand:
@@ -872,7 +877,9 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/cart.SetQuantityRequest'
+          additionalProperties:
+            type: integer
+          type: object
       produces:
       - application/json
       responses:
@@ -1008,6 +1015,28 @@ paths:
       tags:
       - Payment
   /product:
+    get:
+      consumes:
+      - application/json
+      description: GetUserProduct
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful upload
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: GetUserProduct
+      tags:
+      - product
     post:
       consumes:
       - application/json

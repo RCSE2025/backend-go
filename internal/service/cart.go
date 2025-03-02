@@ -19,8 +19,8 @@ func NewCartService(repo *repo.CartRepo, pr *repo.ProductRepo) *CartService {
 }
 
 func (s *CartService) PostInCart(userID, productID int64, quantity int) (model.CartItem, error) {
-	_, err := s.pr.GetProductByID(context.Background(), productID)
-	if err != nil {
+	product, err := s.pr.GetProductByID(context.Background(), productID)
+	if err != nil || product != nil {
 		return model.CartItem{}, err
 	}
 

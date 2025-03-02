@@ -656,7 +656,10 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cart.SetQuantityRequest"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
                         }
                     }
                 ],
@@ -961,6 +964,41 @@ const docTemplate = `{
             }
         },
         "/product": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "description": "GetUserProduct",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "GetUserProduct",
+                "responses": {
+                    "200": {
+                        "description": "Successful upload",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Product"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new product",
                 "consumes": [
@@ -2241,17 +2279,6 @@ const docTemplate = `{
                 }
             }
         },
-        "cart.SetQuantityRequest": {
-            "type": "object",
-            "properties": {
-                "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
         "model.Business": {
             "type": "object",
             "properties": {
@@ -2487,6 +2514,9 @@ const docTemplate = `{
                         "$ref": "#/definitions/model.ProductSpecification"
                     }
                 },
+                "status": {
+                    "$ref": "#/definitions/model.ProductStatus"
+                },
                 "title": {
                     "type": "string"
                 },
@@ -2659,6 +2689,19 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "model.ProductStatus": {
+            "type": "string",
+            "enum": [
+                "consideration",
+                "reject",
+                "approve"
+            ],
+            "x-enum-varnames": [
+                "StatusConsideration",
+                "StatusReject",
+                "StatusApprove"
+            ]
         },
         "model.ProductUpdateRequest": {
             "type": "object",

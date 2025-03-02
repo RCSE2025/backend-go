@@ -44,6 +44,30 @@ func (r *ProductRepo) GetProductByID(ctx context.Context, id int64) (*model.Prod
 	return &product, nil
 }
 
+func (r *ProductRepo) GetProductByBusinessID(id int64) ([]model.Product, error) {
+	var products []model.Product
+	if err := r.db.Where("business_id = ?", id).Find(&products).Error; err != nil {
+		return nil, err
+	}
+
+	for i := range products {
+		// Загружаем изображения
+		var images []model.ProductImage
+		if err := r.db.Where("product_id = ?", id).Find(&images).Error; err != nil {
+			return nil, err
+		}
+		products[i].Images = images
+
+		// Загружаем характеристики
+		var specifications []model.ProductSpecification
+		if err := r.db.Where("product_id = ?", id).Find(&specifications).Error; err != nil {
+			return nil, err
+		}
+		products[i].Specifications = specifications
+	}
+	return products, nil
+}
+
 // GetProductReviews возвращает отзывы на продукт
 func (r *ProductRepo) GetProductReviews(ctx context.Context, productID int64) ([]model.ProductReview, error) {
 	var reviews []model.ProductReview
@@ -134,6 +158,8 @@ func (r *ProductRepo) FilterProducts(ctx context.Context, filters model.ProductQ
 	if filters.OnSale != nil && *filters.OnSale {
 		query = query.Where("discount > 0")
 	}
+
+	query = query.Where("status = ?", "approve")
 
 	// Сортировка
 	switch filters.SortBy {
@@ -402,4 +428,11 @@ func (r *ProductRepo) UploadReviewImages(image model.ReviewImages) (model.Review
 		return model.ReviewImages{}, err
 	}
 	return image, nil
+}
+
+func (r *ProductRepo) GetUserProduct(userID int64) ([]model.Product, error) {
+	var business model.UserToBusiness
+	if err := r.db.Where("user_id = ?", userID).Find(&business).Error; err != nil {
+	}
+	return r.GetProductByBusinessID(business.BusinessID)
 }
