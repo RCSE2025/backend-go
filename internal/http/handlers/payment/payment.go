@@ -18,7 +18,8 @@ func NewProductRoutes(h *gin.RouterGroup, yookassa *service.YookassaPayment, ord
 	g := h.Group("/payment")
 
 	pr := paymentRoutes{
-		yookassa: yookassa,
+		yookassa:     yookassa,
+		orderService: orderService,
 	}
 
 	g.POST("/notifications", pr.notification)

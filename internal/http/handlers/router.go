@@ -66,5 +66,5 @@ func NewRouter(r *gin.Engine, log *slog.Logger, us *service.UserService, jwtServ
 	cart.NewCartRoutes(h, cartService, jwtService)
 	order.NewOrderRoutes(h, orderService, jwtService, cartService)
 	business.NewBusinessRoutes(h, businessService, jwtService)
-	payment.NewProductRoutes(h, paymentService)
+	payment.NewProductRoutes(h, paymentService, orderService)
 }
