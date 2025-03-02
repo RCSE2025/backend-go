@@ -9,19 +9,21 @@ import (
 type OrderService struct {
 	repo        *repo.OrderRepo
 	productRepo *repo.ProductRepo
+	cartService *CartService
 	yookassa    *YookassaPayment
 }
 
-func NewOrderService(repo *repo.OrderRepo, productRepo *repo.ProductRepo, yookassa *YookassaPayment) *OrderService {
+func NewOrderService(repo *repo.OrderRepo, productRepo *repo.ProductRepo, yookassa *YookassaPayment, cartService *CartService) *OrderService {
 	return &OrderService{
 		repo:        repo,
 		productRepo: productRepo,
 		yookassa:    yookassa,
+		cartService: cartService,
 	}
 }
 
-func (ordS *OrderService) CreateOrder(userID int64) (model.Order, error) {
-	return ordS.repo.CreateOrder(model.Order{UserID: userID, Status: model.StatusCreated})
+func (ordS *OrderService) CreateOrder(userID int64, address string) (model.Order, error) {
+	return ordS.repo.CreateOrder(model.Order{UserID: userID, Status: model.StatusCreated, Address: address})
 }
 
 func (ordS *OrderService) CreateOrderItem(userID, orderID, productID int64, quantity int) (model.OrderItem, error) {

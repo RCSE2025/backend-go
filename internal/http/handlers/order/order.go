@@ -31,8 +31,7 @@ func NewOrderRoutes(h *gin.RouterGroup, s *service.OrderService, jwtService serv
 }
 
 type CreateOrderRequest struct {
-	ProductID int64 `json:"product_id"`
-	Quantity  int   `json:"quantity"`
+	Address string `json:"address"`
 }
 
 // CreateOrder
@@ -53,7 +52,7 @@ func (ordR *orderRoutes) CreateOrder(c *gin.Context) {
 		slog.String("request_id", requestid.Get(c)),
 	)
 
-	var req []CreateOrderRequest
+	var req CreateOrderRequest
 	if err := c.ShouldBind(&req); err != nil {
 		log.Error("cannot parse request", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
@@ -61,7 +60,7 @@ func (ordR *orderRoutes) CreateOrder(c *gin.Context) {
 	}
 
 	userID := c.GetInt64("user_id")
-	order, err := ordR.ordService.CreateOrder(userID)
+	order, err := ordR.ordService.CreateOrder(userID, req.Address)
 	if err != nil {
 		log.Error("can't create order", slog.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, response.Error("Can't create order"))
@@ -69,7 +68,13 @@ func (ordR *orderRoutes) CreateOrder(c *gin.Context) {
 	}
 
 	var deleteItemsIDs []int64
-	for _, r := range req {
+	cart, err := ordR.cartService.GetUserCart(userID)
+	if err != nil {
+		log.Error("can't get user cart", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Can't get user cart"))
+		return
+	}
+	for _, r := range cart {
 		_, err := ordR.ordService.CreateOrderItem(userID, order.ID, r.ProductID, r.Quantity)
 		if err != nil {
 			log.Error("can't create order items", slog.String("error", err.Error()))
@@ -184,7 +189,7 @@ func (ordR *orderRoutes) CreateOrderYookassa(c *gin.Context) {
 		slog.String("request_id", requestid.Get(c)),
 	)
 
-	var req []CreateOrderRequest
+	var req CreateOrderRequest
 	if err := c.ShouldBind(&req); err != nil {
 		log.Error("cannot parse request", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
@@ -192,23 +197,31 @@ func (ordR *orderRoutes) CreateOrderYookassa(c *gin.Context) {
 	}
 
 	userID := c.GetInt64("user_id")
-	order, err := ordR.ordService.CreateOrder(userID)
+	order, err := ordR.ordService.CreateOrder(userID, req.Address)
 	if err != nil {
 		log.Error("can't create order", slog.String("error", err.Error()))
 		c.JSON(http.StatusBadRequest, response.Error("Can't create order"))
 		return
 	}
 
-	var totalPrice float64
 	var deleteItemsIDs []int64
-	for _, r := range req {
-		oi, err := ordR.ordService.CreateOrderItem(userID, order.ID, r.ProductID, r.Quantity)
+	cart, err := ordR.cartService.GetUserCart(userID)
+	if err != nil {
+		log.Error("can't get user cart", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Can't get user cart"))
+		return
+	}
+	var totalPrice float64
+
+	for _, r := range cart {
+		_, err := ordR.ordService.CreateOrderItem(userID, order.ID, r.ProductID, r.Quantity)
 		if err != nil {
 			log.Error("can't create order items", slog.String("error", err.Error()))
 			c.JSON(http.StatusBadRequest, response.Error("Can't create order items"))
 			return
 		}
-		totalPrice += oi.Price * float64(oi.Quantity)
+
+		totalPrice += float64(r.Quantity) * r.Product.Price
 		deleteItemsIDs = append(deleteItemsIDs, r.ProductID)
 	}
 
