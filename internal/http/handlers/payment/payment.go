@@ -43,16 +43,32 @@ func (pr *paymentRoutes) notification(c *gin.Context) {
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
+	//fmt.Println(t)
+	//fmt.Println(t["metadata"])
+	//tt := t["metadata"].(map[string]string)
+	//fmt.Println(tt)
+	//fmt.Println(tt["order_id"])
+	////fmt.Println(tt.(int))
+	//var req notification
+	//if err := c.ShouldBindJSON(&req); err != nil {
+	//	c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+	//	return
+	//}
+	//fmt.Println(req)
+
 	fmt.Println(t)
-	fmt.Println(t["metadata"])
-	tt := t["metadata"].(map[string]string)
-	fmt.Println(tt)
-	fmt.Println(tt["order_id"])
-	//fmt.Println(tt.(int))
-	var req notification
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
-		return
+
+	// The metadata is nested inside the "object" field, need to safely access it
+	if object, ok := t["object"].(map[string]interface{}); ok {
+		if metadata, ok := object["metadata"].(map[string]interface{}); ok {
+			if orderID, ok := metadata["order_id"].(string); ok {
+				fmt.Println("Order ID:", orderID)
+				// Process the order ID
+
+				// Return successful response
+				c.Status(http.StatusOK)
+				return
+			}
+		}
 	}
-	fmt.Println(req)
 }
