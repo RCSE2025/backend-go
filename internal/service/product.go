@@ -107,3 +107,7 @@ func (s *ProductService) AddReviewImage(image model.ReviewImages) (model.ReviewI
 func (s *ProductService) GetReviewImages(reviewID int64) ([]model.ReviewImages, error) {
 	return s.repo.GetReviewImages(reviewID)
 }
+
+func (s *ProductService) GetUserProduct(userID int64) ([]model.Product, error) {
+	return s.repo.GetUserProduct(userID)
+}

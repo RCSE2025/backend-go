@@ -6,13 +6,6 @@ definitions:
       quantity:
         type: integer
     type: object
-  cart.SetQuantityRequest:
-    properties:
-      product_id:
-        type: integer
-      quantity:
-        type: integer
-    type: object
   model.Business:
     properties:
       address:
@@ -112,6 +105,16 @@ definitions:
       user_id:
         type: integer
     type: object
+  model.OrderStatusType:
+    enum:
+    - created
+    - delivery
+    - closed
+    type: string
+    x-enum-varnames:
+    - StatusCreated
+    - StatusDelivery
+    - StatusClosed
   model.Product:
     properties:
       brand:
@@ -160,6 +163,8 @@ definitions:
         items:
           $ref: '#/definitions/model.ProductSpecification'
         type: array
+      status:
+        $ref: '#/definitions/model.ProductStatus'
       title:
         type: string
       updated_at:
@@ -282,6 +287,16 @@ definitions:
       value:
         type: string
     type: object
+  model.ProductStatus:
+    enum:
+    - consideration
+    - reject
+    - approve
+    type: string
+    x-enum-varnames:
+    - StatusConsideration
+    - StatusReject
+    - StatusApprove
   model.ProductUpdateRequest:
     properties:
       brand:
@@ -331,6 +346,8 @@ definitions:
         type: string
       id:
         type: integer
+      inn:
+        type: integer
       is_email_verified:
         type: boolean
       is_pasport_verified:
@@ -352,6 +369,8 @@ definitions:
         type: string
       email:
         type: string
+      inn:
+        type: integer
       is_pasport_verified:
         type: boolean
       name:
@@ -375,7 +394,7 @@ definitions:
       order_id:
         type: integer
       status:
-        type: string
+        $ref: '#/definitions/model.OrderStatusType'
     type: object
   response.Response:
     properties:
@@ -855,7 +874,9 @@ paths:
         name: request
         required: true
         schema:
-          $ref: '#/definitions/cart.SetQuantityRequest'
+          additionalProperties:
+            type: integer
+          type: object
       produces:
       - application/json
       responses:
@@ -964,6 +985,28 @@ paths:
       tags:
       - Payment
   /product:
+    get:
+      consumes:
+      - application/json
+      description: GetUserProduct
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful upload
+          schema:
+            items:
+              $ref: '#/definitions/model.Product'
+            type: array
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: GetUserProduct
+      tags:
+      - product
     post:
       consumes:
       - application/json

@@ -656,7 +656,10 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "$ref": "#/definitions/cart.SetQuantityRequest"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "integer"
+                            }
                         }
                     }
                 ],
@@ -917,6 +920,41 @@ const docTemplate = `{
             }
         },
         "/product": {
+            "get": {
+                "security": [
+                    {
+                        "OAuth2PasswordBearer": []
+                    }
+                ],
+                "description": "GetUserProduct",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "product"
+                ],
+                "summary": "GetUserProduct",
+                "responses": {
+                    "200": {
+                        "description": "Successful upload",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/definitions/model.Product"
+                            }
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "$ref": "#/definitions/response.Response"
+                        }
+                    }
+                }
+            },
             "post": {
                 "description": "Create a new product",
                 "consumes": [
@@ -2197,17 +2235,6 @@ const docTemplate = `{
                 }
             }
         },
-        "cart.SetQuantityRequest": {
-            "type": "object",
-            "properties": {
-                "product_id": {
-                    "type": "integer"
-                },
-                "quantity": {
-                    "type": "integer"
-                }
-            }
-        },
         "model.Business": {
             "type": "object",
             "properties": {
@@ -2360,6 +2387,19 @@ const docTemplate = `{
                 }
             }
         },
+        "model.OrderStatusType": {
+            "type": "string",
+            "enum": [
+                "created",
+                "delivery",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "StatusCreated",
+                "StatusDelivery",
+                "StatusClosed"
+            ]
+        },
         "model.Product": {
             "type": "object",
             "properties": {
@@ -2429,6 +2469,9 @@ const docTemplate = `{
                     "items": {
                         "$ref": "#/definitions/model.ProductSpecification"
                     }
+                },
+                "status": {
+                    "$ref": "#/definitions/model.ProductStatus"
                 },
                 "title": {
                     "type": "string"
@@ -2603,6 +2646,19 @@ const docTemplate = `{
                 }
             }
         },
+        "model.ProductStatus": {
+            "type": "string",
+            "enum": [
+                "consideration",
+                "reject",
+                "approve"
+            ],
+            "x-enum-varnames": [
+                "StatusConsideration",
+                "StatusReject",
+                "StatusApprove"
+            ]
+        },
         "model.ProductUpdateRequest": {
             "type": "object",
             "properties": {
@@ -2676,6 +2732,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "inn": {
+                    "type": "integer"
+                },
                 "is_email_verified": {
                     "type": "boolean"
                 },
@@ -2707,6 +2766,9 @@ const docTemplate = `{
                 },
                 "email": {
                     "type": "string"
+                },
+                "inn": {
+                    "type": "integer"
                 },
                 "is_pasport_verified": {
                     "type": "boolean"
@@ -2743,7 +2805,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.OrderStatusType"
                 }
             }
         },

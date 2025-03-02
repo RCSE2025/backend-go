@@ -1,9 +1,11 @@
 package product
 
 import (
+	"github.com/RCSE2025/backend-go/internal/http/middleware/auth"
 	"github.com/RCSE2025/backend-go/internal/http/middleware/logger"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/service"
+	"github.com/RCSE2025/backend-go/internal/utils"
 	"github.com/RCSE2025/backend-go/pkg/api/response"
 	"github.com/gin-contrib/requestid"
 	"github.com/gin-gonic/gin"
@@ -17,6 +19,7 @@ import (
 
 type productRoutes struct {
 	productService *service.ProductService
+	moderateAPI    *utils.ModeratorAPI
 }
 
 func NewProductRoutes(h *gin.RouterGroup, jwtService service.JWTService, productService *service.ProductService) {
@@ -24,8 +27,10 @@ func NewProductRoutes(h *gin.RouterGroup, jwtService service.JWTService, product
 
 	pr := productRoutes{
 		productService: productService,
+		moderateAPI:    utils.NewModeratorAPI(),
 	}
 
+	validateJWTmw := auth.ValidateJWT(jwtService)
 	g.POST("/images/upload", pr.uploadImages)
 	g.GET("/categories", pr.getCategories)
 	g.GET("/:id", pr.getProduct)
@@ -36,6 +41,7 @@ func NewProductRoutes(h *gin.RouterGroup, jwtService service.JWTService, product
 	g.PUT("/:id", pr.updateProduct)
 	g.DELETE("/:id", pr.deleteProduct)
 	g.POST("/:id/images/upload", pr.UploadReviewFile)
+	g.GET("", validateJWTmw, pr.GetUserProduct)
 }
 
 // uploadImages
@@ -306,6 +312,14 @@ func (pr *productRoutes) addProductReview(c *gin.Context) {
 		return
 	}
 
+	isGood, err := pr.moderateAPI.IsModerateContent(review.Comment, nil, true)
+	//fmt.Println(isGood)
+	if isGood == false {
+		log.Error("", slog.String("unwanted content", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Iunwanted content"))
+		return
+	}
+
 	// Устанавливаем ID продукта из URL
 	review.ProductID = id
 
@@ -549,6 +563,14 @@ func (pr *productRoutes) UploadReviewFile(c *gin.Context) {
 		return
 	}
 
+	isGood, err := pr.moderateAPI.IsModerateContent("", &files, false)
+	//fmt.Println(isGood)
+	if isGood == false {
+		log.Error("", slog.String("unwanted content", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Iunwanted content"))
+		return
+	}
+
 	// Получаем S3 клиент из сервиса
 	s3Worker := pr.productService.GetS3WorkerReview()
 
@@ -620,4 +642,31 @@ func (pr *productRoutes) UploadReviewFile(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, uploadedImages)
+}
+
+// GetUserProduct
+// @Summary     GetUserProduct
+// @Description GetUserProduct
+// @Tags  	    product
+// @Accept      application/json
+// @Produce     json
+// @Success     200 {object} []model.Product "Successful upload"
+// @Failure     500 {object} response.Response "Internal server error"
+// @Router      /product [get]
+// @Security OAuth2PasswordBearer
+func (pr *productRoutes) GetUserProduct(c *gin.Context) {
+	const op = "handlers.product.GetUserProduct"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	products, err := pr.productService.GetUserProduct(c.GetInt64("user_id"))
+	if err != nil {
+		log.Error("can't get products", slog.String("can't get products", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("can't get products"))
+		return
+	}
+
+	c.JSON(http.StatusOK, products)
 }

@@ -99,6 +99,12 @@ func (r *ReviewImages) SetTimestamps() {
 	r.UpdatedAt = now
 }
 
+type ProductStatus string
+
+const StatusConsideration ProductStatus = "consideration"
+const StatusReject ProductStatus = "reject"
+const StatusApprove ProductStatus = "approve"
+
 // Product представляет товар
 type Product struct {
 	BaseModel
@@ -119,6 +125,8 @@ type Product struct {
 	Specifications    []ProductSpecification `json:"specifications" gorm:"-"`   // Загружается отдельно
 	Reviews           []ProductReview        `json:"reviews" gorm:"-"`          // Загружается отдельно
 	RelatedProducts   []int64                `json:"related_products" gorm:"-"` // Загружается отдельно
+
+	ProductStatus `json:"status" gorm:"not null;default:'consideration'"`
 }
 
 func (Product) TableName() string {

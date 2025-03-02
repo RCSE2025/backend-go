@@ -31,15 +31,16 @@ type YookassaСonfig struct {
 }
 
 type Config struct {
-	Port        string `env:"PORT"           env-default:"80"`
-	Host        string `env:"HOST"           env-default:"0.0.0.0"`
-	Version     string `env:"VERSION"        env-default:"1"`
-	Production  bool   `env:"PRODUCTION"     env-default:"true"`
-	S3WorkerURL string `env:"S3_WORKER_URL"  env-default:"http://localhost:8000"`
-	FrontendURL string `env:"FRONTEND_URL"   env-default:"http://localhost:3000"`
-	Database    DatabaseConfig
-	Email       EmailConfig
-	Yookassa    YookassaСonfig
+	Port             string `env:"PORT"           env-default:"80"`
+	Host             string `env:"HOST"           env-default:"0.0.0.0"`
+	Version          string `env:"VERSION"        env-default:"1"`
+	Production       bool   `env:"PRODUCTION"     env-default:"true"`
+	S3WorkerURL      string `env:"S3_WORKER_URL"  env-default:"http://localhost:8000"`
+	ModerateModelURL string `env:"MODERATE_MODEL_URL" env-required:"http://localhost:8000"`
+	FrontendURL      string `env:"FRONTEND_URL"   env-default:"http://localhost:3000"`
+	Database         DatabaseConfig
+	Email            EmailConfig
+	Yookassa         YookassaСonfig
 }
 
 var (
