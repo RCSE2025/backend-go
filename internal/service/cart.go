@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"errors"
 	"github.com/RCSE2025/backend-go/internal/model"
 	"github.com/RCSE2025/backend-go/internal/repo"
 )
@@ -19,11 +20,20 @@ func NewCartService(repo *repo.CartRepo, pr *repo.ProductRepo) *CartService {
 }
 
 func (s *CartService) PostInCart(userID, productID int64, quantity int) (model.CartItem, error) {
-	product, err := s.pr.GetProductByID(context.Background(), productID)
-	if err != nil || product != nil {
+	_, err := s.pr.GetProductByID(context.Background(), productID)
+	if err != nil {
 		return model.CartItem{}, err
 	}
 
+	userCart, err := s.repo.GetCart(userID)
+	if err != nil {
+		return model.CartItem{}, err
+	}
+	for _, p := range userCart {
+		if p.ProductID == productID {
+			return model.CartItem{}, errors.New("product already in cart")
+		}
+	}
 	cart, err := s.repo.PostInCart(model.CartItem{UserID: userID, Quantity: quantity, ProductID: productID})
 	return cart, err
 }

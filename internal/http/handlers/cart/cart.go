@@ -63,7 +63,7 @@ func (cr *cartRoutes) PostCartProduct(c *gin.Context) {
 	cart, err := cr.cartService.PostInCart(c.GetInt64("user_id"), req.ProductID, req.Quantity)
 	if err != nil {
 		log.Error("cannot post product in cart", sl.Err(err))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, cart)
@@ -98,7 +98,7 @@ func (cr *cartRoutes) DeleteCartProduct(c *gin.Context) {
 	err := cr.cartService.DeleteCart(c.GetInt64("user_id"), req)
 	if err != nil {
 		log.Error("cannot delete product in user cart", sl.Err(err))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 	c.JSON(http.StatusOK, response.OK())
@@ -123,7 +123,7 @@ func (cr *cartRoutes) GetCartProduct(c *gin.Context) {
 	userCard, err := cr.cartService.GetUserCart(c.GetInt64("user_id"))
 	if err != nil {
 		log.Error("cannot get product in user cart", sl.Err(err))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 	if userCard == nil {
@@ -165,7 +165,7 @@ func (cr *cartRoutes) SetCartQuantity(c *gin.Context) {
 		err := cr.cartService.SetCartQuantity(c.GetInt64("user_id"), id, quantity)
 		if err != nil {
 			log.Error("cannot set product quantity in user cart", sl.Err(err))
-			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+			c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 			return
 		}
 	}
