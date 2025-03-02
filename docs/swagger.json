@@ -866,10 +866,7 @@
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/order.CreateOrderRequest"
-                            }
+                            "$ref": "#/definitions/order.CreateOrderYookassaRequest"
                         }
                     }
                 ],
@@ -2277,6 +2274,19 @@
                 }
             }
         },
+        "model.OrderStatusType": {
+            "type": "string",
+            "enum": [
+                "created",
+                "delivery",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "StatusCreated",
+                "StatusDelivery",
+                "StatusClosed"
+            ]
+        },
         "model.Product": {
             "type": "object",
             "properties": {
@@ -2593,6 +2603,9 @@
                 "id": {
                     "type": "integer"
                 },
+                "inn": {
+                    "type": "integer"
+                },
                 "is_email_verified": {
                     "type": "boolean"
                 },
@@ -2625,6 +2638,9 @@
                 "email": {
                     "type": "string"
                 },
+                "inn": {
+                    "type": "integer"
+                },
                 "is_pasport_verified": {
                     "type": "boolean"
                 },
@@ -2653,6 +2669,14 @@
                 }
             }
         },
+        "order.CreateOrderYookassaRequest": {
+            "type": "object",
+            "properties": {
+                "confirm_url": {
+                    "type": "string"
+                }
+            }
+        },
         "order.SetOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2660,7 +2684,7 @@
                     "type": "integer"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.OrderStatusType"
                 }
             }
         },

@@ -24,7 +24,8 @@ func NewOrderRoutes(h *gin.RouterGroup, s *service.OrderService, jwtService serv
 	validateJWTmw := auth.ValidateJWT(jwtService)
 	ordR := orderRoutes{ordService: s, cartService: cartService}
 
-	g.POST("", validateJWTmw, ordR.CreateOrder)
+	g.POST("/create_order_manual", validateJWTmw, ordR.CreateOrder)
+	g.POST("/create_order_yookassa", validateJWTmw, ordR.CreateOrderYookassa)
 	g.GET("", validateJWTmw, ordR.GetListOrders)
 	g.PUT("", validateJWTmw, ordR.SetOrderStatus)
 }
@@ -43,7 +44,7 @@ type CreateOrderRequest struct {
 // @Failure     500 {object} response.Response
 // @Param request body []CreateOrderRequest true "request"
 // @Success     201 {object} response.Response`
-// @Router      /order [post]
+// @Router      /create_order_manual [post]
 // @Security OAuth2PasswordBearer
 func (ordR *orderRoutes) CreateOrder(c *gin.Context) {
 	const op = "handlers.user.CreateOrder"
@@ -84,7 +85,12 @@ func (ordR *orderRoutes) CreateOrder(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response.Error("Can't create cart items"))
 		return
 	}
-
+	err = ordR.ordService.ConfirmOrderPayment(order.ID)
+	if err != nil {
+		log.Error("can't confirm order payment", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("can't confirm order payment"))
+		return
+	}
 	c.JSON(http.StatusCreated, response.OK())
 }
 
@@ -153,6 +159,72 @@ func (ordR *orderRoutes) SetOrderStatus(c *gin.Context) {
 		c.JSON(http.StatusBadRequest, response.Error("can't set order status"))
 		return
 	}
-
 	c.JSON(http.StatusOK, response.OK())
+}
+
+type CreateOrderYookassaRequest struct {
+	ConfirmURL string `json:"confirm_url"`
+}
+
+// CreateOrderYookassa
+// @Summary 	Create Order
+// @Description Create new order
+// @Tags  	    order
+// @Accept      json
+// @Produce     json
+// @Failure     500 {object} response.Response
+// @Param request body CreateOrderYookassaRequest true "request"
+// @Success     201 {object} response.Response`
+// @Router      /create_order_yookassa [post]
+// @Security OAuth2PasswordBearer
+func (ordR *orderRoutes) CreateOrderYookassa(c *gin.Context) {
+	const op = "handlers.user.CreateOrder"
+	log := logger.FromContext(c).With(
+		slog.String("op", op),
+		slog.String("request_id", requestid.Get(c)),
+	)
+
+	var req []CreateOrderRequest
+	if err := c.ShouldBind(&req); err != nil {
+		log.Error("cannot parse request", sl.Err(err))
+		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
+		return
+	}
+
+	userID := c.GetInt64("user_id")
+	order, err := ordR.ordService.CreateOrder(userID)
+	if err != nil {
+		log.Error("can't create order", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Can't create order"))
+		return
+	}
+
+	var totalPrice float64
+	var deleteItemsIDs []int64
+	for _, r := range req {
+		oi, err := ordR.ordService.CreateOrderItem(userID, order.ID, r.ProductID, r.Quantity)
+		if err != nil {
+			log.Error("can't create order items", slog.String("error", err.Error()))
+			c.JSON(http.StatusBadRequest, response.Error("Can't create order items"))
+			return
+		}
+		totalPrice += oi.Price * float64(oi.Quantity)
+		deleteItemsIDs = append(deleteItemsIDs, r.ProductID)
+	}
+
+	err = ordR.cartService.DeleteCart(userID, deleteItemsIDs)
+	if err != nil {
+		log.Error("can't delete cart items", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Can't create cart items"))
+		return
+	}
+
+	url, err := ordR.ordService.CreateOrderPayment(order.ID, totalPrice)
+	if err != nil {
+		log.Error("can't create order payment", slog.String("error", err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("Can't create order payment"))
+		return
+	}
+
+	c.JSON(http.StatusOK, CreateOrderYookassaRequest{ConfirmURL: url})
 }
