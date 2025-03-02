@@ -50,6 +50,17 @@ func (r *ProductRepo) GetProductReviews(ctx context.Context, productID int64) ([
 	if err := r.db.Where("product_id = ?", productID).Find(&reviews).Error; err != nil {
 		return nil, err
 	}
+
+	for i := range reviews {
+		var images = make([]model.ReviewImages, 0)
+		if err := r.db.Where("review_id = ?", reviews[i].ID).Find(&images).Error; err != nil {
+			return nil, err
+		}
+		for _, image := range images {
+			reviews[i].Images = append(reviews[i].Images, image.URL)
+		}
+	}
+
 	return reviews, nil
 }
 
@@ -376,4 +387,19 @@ func (r *ProductRepo) GetProductImages(ctx context.Context, productID int64) ([]
 		return nil, err
 	}
 	return images, nil
+}
+
+func (r *ProductRepo) GetReviewImages(reviewID int64) ([]model.ReviewImages, error) {
+	var images []model.ReviewImages
+	if err := r.db.Where("review_id = ?", reviewID).Find(&images).Error; err != nil {
+		return nil, err
+	}
+	return images, nil
+}
+
+func (r *ProductRepo) UploadReviewImages(image model.ReviewImages) (model.ReviewImages, error) {
+	if err := r.db.Create(&image).Error; err != nil {
+		return model.ReviewImages{}, err
+	}
+	return image, nil
 }

@@ -61,6 +61,17 @@ func (ProductReview) TableName() string {
 	return "product_reviews"
 }
 
+type ReviewImages struct {
+	BaseModel
+	ID        int64  `json:"id" gorm:"primaryKey;autoIncrement"`
+	ReviewID  int64  `json:"review_id" gorm:"not null"`
+	FileUUID  string `json:"file_uuid" gorm:"not null"`
+	URL       string `json:"url" gorm:"null"`
+	IsPrimary bool   `json:"is_primary" gorm:"default:false"`
+}
+
+func (ReviewImages) TableName() string { return "review_images" }
+
 // ProductImage представляет изображение товара
 type ProductImage struct {
 	BaseModel
@@ -80,6 +91,12 @@ func (p *ProductImage) SetTimestamps() {
 	now := time.Now()
 	p.CreatedAt = now
 	p.UpdatedAt = now
+}
+
+func (r *ReviewImages) SetTimestamps() {
+	now := time.Now()
+	r.CreatedAt = now
+	r.UpdatedAt = now
 }
 
 // Product представляет товар

@@ -146,7 +146,7 @@ type SetQuantityRequest struct {
 // @Failure 	500 {object} response.Response
 // @Success		200 {object} response.Response
 // @Router		/cart [put]
-// @Param request body SetQuantityRequest true "request"
+// @Param request body map[int64]int true "request"
 // @Security OAuth2PasswordBearer
 func (cr *cartRoutes) SetCartQuantity(c *gin.Context) {
 	const op = "handlers.cart.SetCartQuantity"
@@ -154,18 +154,20 @@ func (cr *cartRoutes) SetCartQuantity(c *gin.Context) {
 		slog.String("op", op),
 		slog.String("request_id", requestid.Get(c)))
 
-	var req SetQuantityRequest
+	var req map[int64]int
 	if err := c.ShouldBindJSON(&req); err != nil {
 		log.Error("cannot bind request", sl.Err(err))
 		c.AbortWithStatusJSON(http.StatusBadRequest, response.Error(err.Error()))
 		return
 	}
 
-	err := cr.cartService.SetCartQuantity(c.GetInt64("user_id"), req.ProductID, req.Quantity)
-	if err != nil {
-		log.Error("cannot set product quantity in user cart", sl.Err(err))
-		c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
-		return
+	for id, quantity := range req {
+		err := cr.cartService.SetCartQuantity(c.GetInt64("user_id"), id, quantity)
+		if err != nil {
+			log.Error("cannot set product quantity in user cart", sl.Err(err))
+			c.AbortWithStatusJSON(http.StatusInternalServerError, response.Error(err.Error()))
+			return
+		}
 	}
 	c.JSON(http.StatusOK, response.OK())
 }

@@ -1107,6 +1107,53 @@ paths:
       summary: Update a product
       tags:
       - product
+  /product/{id}/images/upload:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Upload multiple images for review
+      parameters:
+      - collectionFormat: csv
+        description: Upload multiple images
+        in: formData
+        items:
+          type: file
+        name: upload
+        required: true
+        type: array
+      - description: Review ID
+        in: query
+        name: review_id
+        type: integer
+      - description: Is primary image
+        in: query
+        name: is_primary
+        type: boolean
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Successful upload
+          schema:
+            allOf:
+            - $ref: '#/definitions/response.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/model.ProductImage'
+                  type: array
+              type: object
+        "400":
+          description: Bad request
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal server error
+          schema:
+            $ref: '#/definitions/response.Response'
+      summary: Upload multiple images for review
+      tags:
+      - product
   /product/{id}/reviews:
     get:
       description: Get product reviews by product ID

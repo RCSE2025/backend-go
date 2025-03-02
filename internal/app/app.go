@@ -69,7 +69,8 @@ func Run() {
 	orderRepo := repo.NewOrderRepo(db, productRepo)
 	orderService := service.NewOrderService(orderRepo, productRepo, yookassa)
 	s3Worker := utils.NewS3WorkerAPI("products", cfg.S3WorkerURL)
-	productService := service.NewProductService(productRepo, s3Worker)
+	s3WorkerReview := utils.NewS3WorkerAPI("reviews", cfg.S3WorkerURL)
+	productService := service.NewProductService(productRepo, s3Worker, s3WorkerReview)
 	cartService := service.NewCartService(cartRepo, productRepo)
 
 	businessService := service.NewBusinessService(repo.NewBusinessRepo(db), userRepo)
