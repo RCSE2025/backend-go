@@ -1,17 +1,5 @@
 package model
 
-//Orders >>
-//- id			PK[int]
-//- user_id 	FK[int]
-//- status		Enum(created, delivery, closed)
-//
-//
-//OrderItems >>
-//- user_id		PK,FK[int]
-//- product_id	FK[int]
-//- quantity	int
-//- price 		Decimal or float
-
 type Order struct {
 	BaseModel
 	ID             int64           `json:"id" gorm:"primaryKey;autoIncrement"`

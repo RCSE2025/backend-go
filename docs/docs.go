@@ -953,7 +953,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "Payment"
+                    "payment"
                 ],
                 "summary": "Payment notification",
                 "responses": {

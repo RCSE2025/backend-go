@@ -98,7 +98,7 @@ func (pr *productRoutes) uploadImages(c *gin.Context) {
 	isGood, err := pr.moderateAPI.IsModerateContent("", &files, false)
 	if isGood == false || err != nil {
 		log.Warn("can't moderate content or content it's nsfw", err)
-		c.JSON(http.StatusBadRequest, response.Error("can't moderate content or content it's nsfw "+err.Error()))
+		c.JSON(http.StatusBadRequest, response.Error("can't moderate content or content it's nsfw "))
 		return
 	}
 

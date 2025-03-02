@@ -1013,7 +1013,7 @@ paths:
           description: OK
       summary: Payment notification
       tags:
-      - Payment
+      - payment
   /product:
     get:
       consumes:
