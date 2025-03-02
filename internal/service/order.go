@@ -40,3 +40,11 @@ func (ordS *OrderService) SetOrderStatus(orderID, userID int64, status model.Ord
 func (ordS *OrderService) GetUserOrders(userID int64) ([]model.OrderItemResponse, error) {
 	return ordS.repo.GetUserOrders(userID)
 }
+
+func (ordS *OrderService) ConfirmOrderPayment(orderID int64) error {
+	return ordS.repo.ConfirmOrderPayment(orderID)
+}
+
+func (ordS *OrderService) CreateOrderPayment(orderID int64, amount float64) (string, error) {
+	return ordS.yookassa.CreateOrderPayment(orderID, amount)
+}

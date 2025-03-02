@@ -29,9 +29,9 @@ func (p *YookassaPayment) CreateOrderPayment(orderID int64, amount float64) (str
 		PaymentMethod: yoopayment.PaymentMethodType("bank_card"),
 		Confirmation: yoopayment.Redirect{
 			Type:      "redirect",
-			ReturnURL: "https://www.example.com",
+			ReturnURL: "https://ryazan-market.ru",
 		},
-		Description: "Test payment",
+		Description: "Оплата заказа №" + fmt.Sprintf("%d", orderID),
 		Metadata: map[string]interface{}{
 			"order_id": orderID,
 		},

@@ -874,10 +874,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "array",
-                            "items": {
-                                "$ref": "#/definitions/order.CreateOrderRequest"
-                            }
+                            "$ref": "#/definitions/order.CreateOrderYookassaRequest"
                         }
                     }
                 ],
@@ -2360,6 +2357,19 @@ const docTemplate = `{
                 }
             }
         },
+        "model.OrderStatusType": {
+            "type": "string",
+            "enum": [
+                "created",
+                "delivery",
+                "closed"
+            ],
+            "x-enum-varnames": [
+                "StatusCreated",
+                "StatusDelivery",
+                "StatusClosed"
+            ]
+        },
         "model.Product": {
             "type": "object",
             "properties": {
@@ -2676,6 +2686,9 @@ const docTemplate = `{
                 "id": {
                     "type": "integer"
                 },
+                "inn": {
+                    "type": "integer"
+                },
                 "is_email_verified": {
                     "type": "boolean"
                 },
@@ -2708,6 +2721,9 @@ const docTemplate = `{
                 "email": {
                     "type": "string"
                 },
+                "inn": {
+                    "type": "integer"
+                },
                 "is_pasport_verified": {
                     "type": "boolean"
                 },
@@ -2736,6 +2752,14 @@ const docTemplate = `{
                 }
             }
         },
+        "order.CreateOrderYookassaRequest": {
+            "type": "object",
+            "properties": {
+                "confirm_url": {
+                    "type": "string"
+                }
+            }
+        },
         "order.SetOrderStatusRequest": {
             "type": "object",
             "properties": {
@@ -2743,7 +2767,7 @@ const docTemplate = `{
                     "type": "integer"
                 },
                 "status": {
-                    "type": "string"
+                    "$ref": "#/definitions/model.OrderStatusType"
                 }
             }
         },

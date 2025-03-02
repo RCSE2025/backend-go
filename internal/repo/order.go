@@ -56,3 +56,7 @@ func (or *OrderRepo) GetUserOrders(userID int64) ([]model.OrderItemResponse, err
 	}
 	return userOrders, nil
 }
+
+func (or *OrderRepo) ConfirmOrderPayment(orderID int64) error {
+	return or.db.Model(&model.Order{}).Where("id = ?", orderID).Update("payment_confirm", true).Error
+}
