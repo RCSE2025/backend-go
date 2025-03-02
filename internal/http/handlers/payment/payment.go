@@ -35,7 +35,7 @@ type notification struct {
 }
 
 // @Summary Payment notification
-// @Tags Payment
+// @Tags payment
 // @Accept json
 // @Produce json
 // @Success 200
