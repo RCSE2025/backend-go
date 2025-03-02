@@ -96,8 +96,8 @@ func (pr *productRoutes) uploadImages(c *gin.Context) {
 	}
 
 	isGood, err := pr.moderateAPI.IsModerateContent("", &files, false)
-	if isGood == false || err != nil {
-		log.Warn("can't moderate content or content it's nsfw", err)
+	if isGood == false {
+		log.Warn("can't moderate content or content it's nsfw")
 		c.JSON(http.StatusBadRequest, response.Error("can't moderate content or content it's nsfw "))
 		return
 	}
@@ -322,7 +322,7 @@ func (pr *productRoutes) addProductReview(c *gin.Context) {
 	isGood, err := pr.moderateAPI.IsModerateContent(review.Comment, nil, true)
 	//fmt.Println(isGood)
 	if isGood == false {
-		log.Error("", slog.String("unwanted content", err.Error()))
+		log.Error("", slog.String("unwanted content", ""))
 		c.JSON(http.StatusBadRequest, response.Error("Iunwanted content"))
 		return
 	}
@@ -592,7 +592,7 @@ func (pr *productRoutes) UploadReviewFile(c *gin.Context) {
 	isGood, err := pr.moderateAPI.IsModerateContent("", &files, false)
 	//fmt.Println(isGood)
 	if isGood == false {
-		log.Error("", slog.String("unwanted content", err.Error()))
+		log.Error("", slog.String("unwanted content", ""))
 		c.JSON(http.StatusBadRequest, response.Error("Iunwanted content"))
 		return
 	}

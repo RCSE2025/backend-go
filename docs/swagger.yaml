@@ -896,62 +896,6 @@ paths:
       summary: Set product quantity in cart
       tags:
       - cart
-  /create_order_manual:
-    post:
-      consumes:
-      - application/json
-      description: Create new order
-      parameters:
-      - description: request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/order.CreateOrderRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/response.Response'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - OAuth2PasswordBearer: []
-      summary: Create Order
-      tags:
-      - order
-  /create_order_yookassa:
-    post:
-      consumes:
-      - application/json
-      description: Create new order
-      parameters:
-      - description: request
-        in: body
-        name: request
-        required: true
-        schema:
-          $ref: '#/definitions/order.CreateOrderRequest'
-      produces:
-      - application/json
-      responses:
-        "201":
-          description: Created
-          schema:
-            $ref: '#/definitions/order.CreateOrderYookassaRequest'
-        "500":
-          description: Internal Server Error
-          schema:
-            $ref: '#/definitions/response.Response'
-      security:
-      - OAuth2PasswordBearer: []
-      summary: Create Order
-      tags:
-      - order
   /order:
     get:
       consumes:
@@ -1000,6 +944,62 @@ paths:
       security:
       - OAuth2PasswordBearer: []
       summary: Set Order status
+      tags:
+      - order
+  /order/create_order_manual:
+    post:
+      consumes:
+      - application/json
+      description: Create new order
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/response.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Create Order
+      tags:
+      - order
+  /order/create_order_yookassa:
+    post:
+      consumes:
+      - application/json
+      description: Create new order
+      parameters:
+      - description: request
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/order.CreateOrderRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/order.CreateOrderYookassaRequest'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/response.Response'
+      security:
+      - OAuth2PasswordBearer: []
+      summary: Create Order
       tags:
       - order
   /payment/notifications:
