@@ -473,8 +473,21 @@ func (pr *productRoutes) updateProduct(c *gin.Context) {
 		return
 	}
 
+	isGood, err := pr.moderateAPI.IsModerateContent(updateRequest.Title+" "+updateRequest.Description, nil, true)
+	if isGood == false || err != nil {
+		log.Warn("can't moderate content or content it's nsfw", err)
+		c.JSON(http.StatusBadRequest, response.Error("can't moderate content or content it's nsfw"))
+		return
+	}
+
 	// Применяем изменения к существующему продукту
 	updateRequest.ApplyToProduct(existingProduct)
+	err = pr.productService.SetProductStatus(existingProduct.ID, "approve")
+	if err != nil {
+		log.Warn("can't update product", err)
+		c.JSON(http.StatusBadRequest, response.Error("can't update product "+err.Error()))
+		return
+	}
 
 	// Обновление продукта через сервис
 	updatedProduct, err := pr.productService.UpdateProduct(c.Request.Context(), *existingProduct)
