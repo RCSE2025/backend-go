@@ -23,11 +23,12 @@ type UserService struct {
 	frontendURL string
 }
 
-func NewUserService(repo *repo.UserRepo, jwtService JWTService, mailer *email.Mailer) *UserService {
+func NewUserService(repo *repo.UserRepo, jwtService JWTService, mailer *email.Mailer, frontendURL string) *UserService {
 	return &UserService{
-		repo:       repo,
-		jwtService: jwtService,
-		mailer:     mailer,
+		repo:        repo,
+		jwtService:  jwtService,
+		mailer:      mailer,
+		frontendURL: frontendURL,
 	}
 }
 
@@ -51,6 +52,7 @@ func (s *UserService) CreateUser(user model.UserCreate) (model.User, error) {
 			DateOfBirth:       user.DateOfBirth,
 			Role:              model.UserRole,
 			IsPasportVerified: user.IsPasportVerified,
+			INN:               user.INN,
 		},
 	)
 
@@ -350,7 +352,7 @@ func (s *UserService) SendResetPasswordEmail(email string) error {
 		return err
 	}
 
-	resetLink := fmt.Sprintf("%s/reset-password?token=%s", s.frontendURL, token)
+	resetLink := fmt.Sprintf("%s/refresh_password?token=%s", s.frontendURL, token)
 
 	body, err := makeResetPasswordEmailTemplate(user.Name, resetLink)
 	if err != nil {

@@ -14,9 +14,11 @@ package model
 
 type Order struct {
 	BaseModel
-	ID     int64  `json:"id" gorm:"primaryKey;autoIncrement"`
-	UserID int64  `json:"user_id" gorm:"not null"`
-	Status string `json:"status" gorm:"not null;default:created" swaggertype:"primitive,string"`
+	ID             int64           `json:"id" gorm:"primaryKey;autoIncrement"`
+	UserID         int64           `json:"user_id" gorm:"not null"`
+	Status         OrderStatusType `json:"status" gorm:"not null;default:created" swaggertype:"primitive,string"`
+	PaymentConfirm bool            `json:"payment_confirm" gorm:"not null;default:false"`
+	Address        string          `json:"address" gorm:"not null"`
 }
 
 type OrderStatusType string
