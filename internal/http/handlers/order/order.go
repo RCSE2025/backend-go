@@ -41,7 +41,7 @@ type CreateOrderRequest struct {
 // @Accept      json
 // @Produce     json
 // @Failure     500 {object} response.Response
-// @Param request body []CreateOrderRequest true "request"
+// @Param request body CreateOrderRequest true "request"
 // @Success     201 {object} response.Response`
 // @Router      /create_order_manual [post]
 // @Security OAuth2PasswordBearer
@@ -178,8 +178,8 @@ type CreateOrderYookassaRequest struct {
 // @Accept      json
 // @Produce     json
 // @Failure     500 {object} response.Response
-// @Param request body CreateOrderYookassaRequest true "request"
-// @Success     201 {object} response.Response`
+// @Param request body CreateOrderRequest true "request"
+// @Success     201 {object} CreateOrderYookassaRequest`
 // @Router      /create_order_yookassa [post]
 // @Security OAuth2PasswordBearer
 func (ordR *orderRoutes) CreateOrderYookassa(c *gin.Context) {
