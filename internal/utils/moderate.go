@@ -130,6 +130,7 @@ func (m *ModeratorAPI) IsModerateContent(content string, files *[]*multipart.Fil
 
 	var r map[string]interface{}
 	json.NewDecoder(resp.Body).Decode(&r)
+	fmt.Println(r)
 
 	t, ok := r["result"].(float64)
 	if ok == true && t == 0 {

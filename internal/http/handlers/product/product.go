@@ -95,6 +95,13 @@ func (pr *productRoutes) uploadImages(c *gin.Context) {
 		return
 	}
 
+	isGood, err := pr.moderateAPI.IsModerateContent("", &files, false)
+	if isGood == false || err != nil {
+		log.Warn("can't moderate content or content it's nsfw", err)
+		c.JSON(http.StatusBadRequest, response.Error("can't moderate content or content it's nsfw "+err.Error()))
+		return
+	}
+
 	// Получаем S3 клиент из сервиса
 	s3Worker := pr.productService.GetS3Worker()
 
@@ -404,6 +411,12 @@ func (pr *productRoutes) createProduct(c *gin.Context) {
 
 	// Преобразуем запрос в модель продукта
 	product := productRequest.ToProduct()
+	isGood, err := pr.moderateAPI.IsModerateContent(productRequest.Title+" "+productRequest.Description, nil, true)
+	if isGood == false {
+		product.Status = "reject"
+	} else {
+		product.Status = "approve"
+	}
 
 	// Создание продукта через сервис
 	createdProduct, err := pr.productService.CreateProduct(c.Request.Context(), product)
