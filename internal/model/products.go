@@ -126,7 +126,7 @@ type Product struct {
 	Reviews           []ProductReview        `json:"reviews" gorm:"-"`          // Загружается отдельно
 	RelatedProducts   []int64                `json:"related_products" gorm:"-"` // Загружается отдельно
 
-	ProductStatus `json:"status" gorm:"not null;default:'consideration'"`
+	Status ProductStatus `json:"status" gorm:"not null;default:consideration"`
 }
 
 func (Product) TableName() string {

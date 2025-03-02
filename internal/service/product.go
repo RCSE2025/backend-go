@@ -111,3 +111,7 @@ func (s *ProductService) GetReviewImages(reviewID int64) ([]model.ReviewImages, 
 func (s *ProductService) GetUserProduct(userID int64) ([]model.Product, error) {
 	return s.repo.GetUserProduct(userID)
 }
+
+func (s *ProductService) SetProductStatus(productID int64, status string) error {
+	return s.repo.SetProductStatus(productID, status)
+}

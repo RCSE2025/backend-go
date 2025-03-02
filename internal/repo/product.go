@@ -436,3 +436,7 @@ func (r *ProductRepo) GetUserProduct(userID int64) ([]model.Product, error) {
 	}
 	return r.GetProductByBusinessID(business.BusinessID)
 }
+
+func (r *ProductRepo) SetProductStatus(productID int64, status string) error {
+	return r.db.Model(&model.Product{}).Where("id = ?", productID).Update("status", status).Error
+}
